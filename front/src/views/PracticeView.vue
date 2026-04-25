@@ -1,46 +1,93 @@
 <template>
-  <div class="max-w-4xl mx-auto px-4 py-8">
-    <!-- 加载状态 -->
-    <div v-if="loading" class="flex justify-center items-center py-20">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  <div class="min-h-screen bg-gradient-to-br from-green-50 via-teal-50 to-blue-50">
+    <!-- 顶部装饰 -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute -top-40 -right-40 w-80 h-80 bg-teal-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+      <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-green-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div class="absolute top-1/2 left-1/2 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
     </div>
 
-    <!-- 错误提示 -->
-    <div v-else-if="error" class="p-4 bg-red-50 border border-red-200 rounded-lg">
-      <p class="text-sm text-red-600">{{ error }}</p>
-      <button
-        @click="$router.back()"
-        class="mt-4 text-sm text-blue-600 hover:text-blue-500"
-      >
-        返回关卡详情
-      </button>
-    </div>
+    <div class="max-w-4xl mx-auto px-4 py-12 relative">
+      <!-- 加载状态 -->
+      <div v-if="loading" class="flex justify-center items-center py-20">
+        <div class="relative">
+          <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-200"></div>
+          <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 absolute top-0 left-0"></div>
+        </div>
+      </div>
 
-    <!-- 打字练习界面 -->
-    <div v-else-if="levelDetail" class="space-y-6">
-      <!-- 顶部信息栏 -->
-      <div class="bg-white rounded-lg shadow-md p-4">
-        <div class="flex justify-between items-center">
-          <div>
-            <h1 class="text-xl font-bold text-gray-900">{{ levelDetail.name }}</h1>
-            <p class="text-sm text-gray-600 mt-1">
-              练习进度：{{ currentExerciseIndex + 1 }} / {{ levelDetail.exercises.length }}
-            </p>
-          </div>
-          <div class="text-right">
-            <div class="text-2xl font-bold text-blue-600">{{ accuracy.toFixed(1) }}%</div>
-            <div class="text-xs text-gray-600">正确率</div>
+      <!-- 错误提示 -->
+      <div v-else-if="error" class="bg-white rounded-2xl shadow-xl p-8 border border-red-100">
+        <div class="text-center">
+          <div class="text-6xl mb-4">❌</div>
+          <p class="text-lg text-red-600 mb-6">{{ error }}</p>
+          <button
+            @click="$router.back()"
+            class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl transition shadow-lg hover:shadow-xl"
+          >
+            返回关卡详情
+          </button>
+        </div>
+      </div>
+
+      <!-- 语音选择弹窗 -->
+      <div v-if="showSpeakDialog" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50" @click.self="confirmSpeakSetting(true)">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform animate-bounce-in">
+          <div class="text-center">
+            <div class="text-6xl mb-4">🔊</div>
+            <h2 class="text-2xl font-bold text-gray-900 mb-3">开启语音播报？</h2>
+            <p class="text-gray-600 mb-6">练习时将自动播放单词/短语读音</p>
+            
+            <!-- 倒计时 -->
+            <div class="mb-6">
+              <div class="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">{{ speakDialogCountdown }}</div>
+              <div class="text-sm text-gray-500">秒后自动开启</div>
+            </div>
+
+            <!-- 按钮组 -->
+            <div class="flex gap-3">
+              <button 
+                @click="confirmSpeakSetting(false)" 
+                class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition transform hover:scale-105"
+              >
+                关闭语音
+              </button>
+              <button 
+                @click="confirmSpeakSetting(true)" 
+                class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl transition shadow-lg transform hover:scale-105"
+              >
+                开启语音 🔊
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- 中文提示 + 读音控制 -->
-      <div class="bg-blue-50 rounded-lg p-4">
-        <div class="flex items-center justify-between">
-          <div class="text-center flex-1">
-            <p class="text-sm text-gray-600 mb-1">中文释义</p>
-            <p class="text-lg text-gray-900">{{ currentExercise?.contentZh }}</p>
+      <!-- 打字练习界面 -->
+      <div v-else-if="levelDetail" class="space-y-6">
+        <!-- 顶部信息栏 -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+          <div class="flex justify-between items-center">
+            <div>
+              <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{{ levelDetail.name }}</h1>
+              <p class="text-sm text-gray-600 mt-2 font-medium">
+                📝 练习进度：<span class="text-blue-600 font-bold">{{ currentExerciseIndex + 1 }}</span> / {{ levelDetail.exercises.length }}
+              </p>
+            </div>
+            <div class="text-right">
+              <div class="text-3xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">{{ accuracy.toFixed(1) }}%</div>
+              <div class="text-xs text-gray-600 mt-1 font-medium">正确率</div>
+            </div>
           </div>
+        </div>
+
+        <!-- 中文提示 + 读音控制 -->
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-100 shadow-md">
+          <div class="flex items-center justify-between">
+            <div class="text-center flex-1">
+              <p class="text-sm text-gray-600 mb-2 font-medium">📖 中文释义</p>
+              <p class="text-xl text-gray-900 font-bold">{{ currentExercise?.contentZh }}</p>
+            </div>
           <div class="flex items-center gap-2 ml-4">
             <!-- 手动播放按钮 -->
             <button
@@ -68,7 +115,7 @@
       </div>
 
       <!-- 打字区域 -->
-      <div class="bg-white rounded-lg shadow-md p-6">
+      <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
         <TypingEngine
           v-if="!showResult"
           ref="typingEngineRef"
@@ -98,10 +145,11 @@
             class="px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition shadow-md hover:shadow-lg flex items-center gap-2"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-tt7 7M5 5l7 7-7 7" />
             </svg>
             跳过 (Enter)
           </button>
+        </div>
         </div>
       </div>
 
@@ -216,6 +264,9 @@ const typingEngineRef = ref<InstanceType<typeof TypingEngine> | null>(null)
 
 // 语音播放
 const autoSpeak = ref(true)
+const showSpeakDialog = ref(false)
+const speakDialogCountdown = ref(5)
+let speakDialogTimer: ReturnType<typeof setInterval> | null = null
 
 // 当前练习
 const currentExercise = computed(() => {
@@ -265,9 +316,6 @@ const loadLevelDetail = async () => {
 
     const response = await getLevelDetail(levelId)
     levelDetail.value = response.data.data
-    
-    // 记录开始时间
-    startTime.value = Date.now()
   } catch (err: any) {
     if (err.response?.status === 403) {
       error.value = '该关卡尚未解锁，请先完成前面的关卡'
@@ -276,7 +324,40 @@ const loadLevelDetail = async () => {
     }
   } finally {
     loading.value = false
+    // 加载完成后显示语音选择弹窗
+    if (levelDetail.value) {
+      showSpeakDialog.value = true
+      speakDialogCountdown.value = 5
+      
+      // 启动5秒倒计时
+      if (speakDialogTimer) clearInterval(speakDialogTimer)
+      speakDialogTimer = setInterval(() => {
+        speakDialogCountdown.value--
+        if (speakDialogCountdown.value <= 0) {
+          clearInterval(speakDialogTimer!)
+          // 5秒后默认开启语音，开始练习
+          autoSpeak.value = true
+          showSpeakDialog.value = false
+          startPractice()
+        }
+      }, 1000)
+    }
   }
+}
+
+const confirmSpeakSetting = (enabled: boolean) => {
+  if (speakDialogTimer) {
+    clearInterval(speakDialogTimer)
+    speakDialogTimer = null
+  }
+  autoSpeak.value = enabled
+  showSpeakDialog.value = false
+  startPractice()
+}
+
+const startPractice = () => {
+  // 记录开始时间
+  startTime.value = Date.now()
 }
 
 /**
@@ -411,4 +492,59 @@ const closeResult = () => {
 onMounted(() => {
   loadLevelDetail()
 })
+
+// 组件卸载时清理定时器
+onUnmounted(() => {
+  if (speakDialogTimer) clearInterval(speakDialogTimer)
+})
 </script>
+
+<style scoped>
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.5s ease-out;
+}
+</style>

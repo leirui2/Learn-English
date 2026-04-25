@@ -55,6 +55,39 @@
       </button>
     </div>
 
+    <!-- 语音选择弹窗 -->
+    <div v-if="showSpeakDialog" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click.self="confirmSpeakSetting(true)">
+      <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+        <div class="text-center">
+          <div class="text-5xl mb-4">🔊</div>
+          <h2 class="text-2xl font-bold text-gray-900 mb-2">开启语音播报？</h2>
+          <p class="text-gray-500 mb-6">挑战时将自动播放单词/短语读音</p>
+          
+          <!-- 倒计时 -->
+          <div class="mb-6">
+            <div class="text-4xl font-bold text-blue-600 mb-2">{{ speakDialogCountdown }}</div>
+            <div class="text-sm text-gray-400">秒后自动开启</div>
+          </div>
+
+          <!-- 按钮组 -->
+          <div class="flex gap-3">
+            <button 
+              @click="confirmSpeakSetting(false)" 
+              class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition"
+            >
+              关闭语音
+            </button>
+            <button 
+              @click="confirmSpeakSetting(true)" 
+              class="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl transition shadow-lg"
+            >
+              开启语音 🔊
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 游戏页 -->
     <div v-else-if="phase === 'playing'">
       <!-- 顶部状态栏 -->
@@ -311,38 +344,6 @@ type TimeMode = 'TIMED' | 'INFINITE'
 const phase = ref<Phase>('setup')
 const inputRef = ref<HTMLInputElement | null>(null)
 
-const startTime = ref<number>(0)
-const elapsedMs = ref(0)
-const timeLeft = ref(60)
-// 语音播放
-const autoSpeak = ref(true)
-// 排行榜
-const leaderboard = ref<ChallengeLeaderboardEntry[]>([])
-const history = ref<ChallengeRecord[]>([])
-const lbLoading = ref(false)
-const currentExercise = computed(() => exercises.value[currentExerciseIndex.value])
-const targetChars = computed(() => currentExercise.value?.contentEn.split('') || [])
-// 语音播放方法
-const speakCurrent = () => {
-    const text = currentExercise.value?.contentEn
-    if (!text || !window.speechSynthesis) return
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = 'en-US'
-    utterance.rate = 0.9
-    window.speechSynthesis.speak(utterance)
-}
-// 监听当前练习变化，自动播放
-watch(currentExercise, (exercise) => {
-    if (autoSpeak.value && exercise?.contentEn) {
-        setTimeout(() => speakCurrent(), 100)
-    }
-})
-const currentAccuracy = computed(() => {
-    if (totalTyped.value === 0) return 100
-    return Math.round(correctTyped.value / totalTyped.value * 100)
-})
-
 // 配置
 const selectedType = ref<ContentType>('WORD')
 const selectedMode = ref<TimeMode>('TIMED')
@@ -359,6 +360,38 @@ const startTime = ref<number>(0)
 const elapsedMs = ref(0)
 const timeLeft = ref(60)
 
+// 语音播放
+const autoSpeak = ref(true)
+const showSpeakDialog = ref(false)
+const speakDialogCountdown = ref(5)
+let speakDialogTimer: ReturnType<typeof setInterval> | null = null
+
+const currentExercise = computed(() => exercises.value[currentExerciseIndex.value])
+const targetChars = computed(() => currentExercise.value?.contentEn.split('') || [])
+
+const currentAccuracy = computed(() => {
+  if (totalTyped.value === 0) return 100
+  return Math.round(correctTyped.value / totalTyped.value * 100)
+})
+
+// 语音播放方法
+const speakCurrent = () => {
+    const text = currentExercise.value?.contentEn
+    if (!text || !window.speechSynthesis) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = 'en-US'
+    utterance.rate = 0.9
+    window.speechSynthesis.speak(utterance)
+}
+
+// 监听当前练习变化，自动播放
+watch(currentExercise, (exercise) => {
+    if (autoSpeak.value && exercise?.contentEn) {
+        setTimeout(() => speakCurrent(), 100)
+    }
+})
+
 // 排行榜
 const leaderboard = ref<ChallengeLeaderboardEntry[]>([])
 const history = ref<ChallengeRecord[]>([])
@@ -366,8 +399,6 @@ const lbLoading = ref(false)
 const lbType = ref<ContentType>('WORD')
 const lbMode = ref<TimeMode>('TIMED')
 const lbTimeLimit = ref<number | undefined>(60)
-
-let gameTimer: ReturnType<typeof setInterval> | null = null
 
 const contentTypes = [
   { value: 'WORD' as ContentType, label: '单词挑战', icon: '📝', desc: '随机单词，速度优先' },
@@ -381,19 +412,13 @@ const timeModes = [
   { key: 'infinite', mode: 'INFINITE' as TimeMode, label: '无限', icon: '♾️', desc: '自由挑战', timeLimit: 0 },
 ]
 
-const currentExercise = computed(() => exercises.value[currentExerciseIndex.value])
-const targetChars = computed(() => currentExercise.value?.contentEn.split('') || [])
-
-const currentAccuracy = computed(() => {
-  if (totalTyped.value === 0) return 100
-  return Math.round(correctTyped.value / totalTyped.value * 100)
-})
-
 const currentWpm = computed(() => {
   const elapsed = elapsedMs.value / 1000 / 60
   if (elapsed === 0) return 0
   return Math.round(correctTyped.value / 5 / elapsed)
 })
+
+let gameTimer: ReturnType<typeof setInterval> | null = null
 
 const focusInput = () => inputRef.value?.focus()
 
@@ -409,6 +434,35 @@ const formatCountdown = (s: number) => {
 }
 
 const startChallenge = async () => {
+  // 显示语音选择弹窗
+  showSpeakDialog.value = true
+  speakDialogCountdown.value = 5
+  
+  // 启动5秒倒计时
+  if (speakDialogTimer) clearInterval(speakDialogTimer)
+  speakDialogTimer = setInterval(() => {
+    speakDialogCountdown.value--
+    if (speakDialogCountdown.value <= 0) {
+      clearInterval(speakDialogTimer!)
+      // 5秒后默认开启语音，进入正式挑战
+      autoSpeak.value = true
+      showSpeakDialog.value = false
+      startGame()
+    }
+  }, 1000)
+}
+
+const confirmSpeakSetting = (enabled: boolean) => {
+  if (speakDialogTimer) {
+    clearInterval(speakDialogTimer)
+    speakDialogTimer = null
+  }
+  autoSpeak.value = enabled
+  showSpeakDialog.value = false
+  startGame()
+}
+
+const startGame = async () => {
   // 重置状态
   exercises.value = []
   currentExerciseIndex.value = 0
@@ -525,6 +579,7 @@ watch(phase, (val) => {
 onMounted(() => window.addEventListener('click', focusInput))
 onUnmounted(() => {
   if (gameTimer) clearInterval(gameTimer)
+  if (speakDialogTimer) clearInterval(speakDialogTimer)
   window.removeEventListener('click', focusInput)
 })
 </script>

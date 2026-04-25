@@ -1,7 +1,17 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <div v-if="loading" class="flex justify-center items-center py-32">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <!-- 顶部装饰 -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+      <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div class="absolute top-1/2 left-1/2 w-80 h-80 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+    </div>
+
+    <div v-if="loading" class="flex justify-center items-center py-32 relative">
+      <div class="relative">
+        <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-200"></div>
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-600 absolute top-0 left-0"></div>
+      </div>
     </div>
 
     <div v-else>
@@ -69,33 +79,33 @@
       <div class="max-w-5xl mx-auto px-4 py-8 space-y-6">
         <!-- 统计卡片 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
+          <div class="bg-white rounded-2xl shadow-lg p-6 border border-blue-100 hover:shadow-2xl transition transform hover:scale-105">
             <div class="flex items-center gap-3 mb-3">
-              <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-xl">⏱️</div>
-              <span class="text-sm text-gray-500">练习时长</span>
+              <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center text-2xl shadow-lg">⏱️</div>
+              <span class="text-sm text-gray-600 font-medium">练习时长</span>
             </div>
-            <div class="text-2xl font-bold text-gray-900">{{ formatTime(stats?.totalPracticeTimeMs || 0) }}</div>
+            <div class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{{ formatTime(stats?.totalPracticeTimeMs || 0) }}</div>
           </div>
-          <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
+          <div class="bg-white rounded-2xl shadow-lg p-6 border border-green-100 hover:shadow-2xl transition transform hover:scale-105">
             <div class="flex items-center gap-3 mb-3">
-              <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-xl">⌨️</div>
-              <span class="text-sm text-gray-500">输入字符</span>
+              <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-500 rounded-xl flex items-center justify-center text-2xl shadow-lg">⌨️</div>
+              <span class="text-sm text-gray-600 font-medium">输入字符</span>
             </div>
-            <div class="text-2xl font-bold text-gray-900">{{ formatNumber(stats?.totalCharactersTyped || 0) }}</div>
+            <div class="text-3xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">{{ formatNumber(stats?.totalCharactersTyped || 0) }}</div>
           </div>
-          <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
+          <div class="bg-white rounded-2xl shadow-lg p-6 border border-purple-100 hover:shadow-2xl transition transform hover:scale-105">
             <div class="flex items-center gap-3 mb-3">
-              <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-xl">🏆</div>
-              <span class="text-sm text-gray-500">完成关卡</span>
+              <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center text-2xl shadow-lg">🏆</div>
+              <span class="text-sm text-gray-600 font-medium">完成关卡</span>
             </div>
-            <div class="text-2xl font-bold text-gray-900">{{ stats?.totalCompletedLevels || 0 }}</div>
+            <div class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{{ stats?.totalCompletedLevels || 0 }}</div>
           </div>
-          <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 hover:shadow-md transition">
+          <div class="bg-white rounded-2xl shadow-lg p-6 border border-orange-100 hover:shadow-2xl transition transform hover:scale-105">
             <div class="flex items-center gap-3 mb-3">
-              <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center text-xl">⭐</div>
-              <span class="text-sm text-gray-500">总积分</span>
+              <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-2xl shadow-lg">⭐</div>
+              <span class="text-sm text-gray-600 font-medium">总积分</span>
             </div>
-            <div class="text-2xl font-bold text-gray-900">{{ stats?.totalScore || 0 }}</div>
+            <div class="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">{{ stats?.totalScore || 0 }}</div>
           </div>
         </div>
 
@@ -468,5 +478,32 @@ onMounted(loadData)
 .modal-enter-from,
 .modal-leave-to {
   opacity: 0;
+}
+
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
 </style>

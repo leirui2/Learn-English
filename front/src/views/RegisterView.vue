@@ -1,10 +1,13 @@
 <template>
   <AuthLayout>
-    <div class="bg-white rounded-lg shadow-md p-8 md:p-10">
+    <div class="bg-white rounded-2xl shadow-xl p-8 md:p-10 border border-gray-100">
       <!-- 标题 -->
       <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">注册</h1>
-        <p class="mt-2 text-sm text-gray-600">创建账号，开始你的英语学习之旅</p>
+        <div class="inline-block mb-4">
+          <div class="text-6xl animate-bounce">✨</div>
+        </div>
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">创建账号</h1>
+        <p class="mt-2 text-sm text-gray-600">开始你的英语学习之旅 🎯</p>
       </div>
 
       <!-- 注册表单 -->
@@ -12,7 +15,10 @@
         <!-- 用户名输入 -->
         <div>
           <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
-            用户名
+            <span class="flex items-center gap-2">
+              <span>👤</span>
+              <span>用户名</span>
+            </span>
           </label>
           <input
             id="username"
@@ -33,7 +39,10 @@
         <!-- 邮箱输入 -->
         <div>
           <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-            邮箱
+            <span class="flex items-center gap-2">
+              <span>📧</span>
+              <span>邮箱</span>
+            </span>
           </label>
           <input
             id="email"
@@ -54,7 +63,10 @@
         <!-- 密码输入 -->
         <div>
           <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-            密码
+            <span class="flex items-center gap-2">
+              <span>🔒</span>
+              <span>密码</span>
+            </span>
           </label>
           <input
             id="password"
@@ -78,7 +90,10 @@
         <!-- 确认密码输入 -->
         <div>
           <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
-            确认密码
+            <span class="flex items-center gap-2">
+              <span>🔐</span>
+              <span>确认密码</span>
+            </span>
           </label>
           <input
             id="confirmPassword"
@@ -105,10 +120,10 @@
         <button
           type="submit"
           :disabled="loading"
-          class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           <span v-if="loading">注册中...</span>
-          <span v-else>注册</span>
+          <span v-else>立即注册 →</span>
         </button>
       </form>
 

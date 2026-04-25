@@ -140,7 +140,7 @@ const handleLogout = async () => {
     console.error('退出失败:', e)
   } finally {
     authStore.logout()
-    router.push('/login')
+    await router.push('/login')
   }
 }
 </script>

@@ -1,10 +1,13 @@
 <template>
   <AuthLayout>
-    <div class="bg-white rounded-lg shadow-md p-8 md:p-10">
+    <div class="bg-white rounded-2xl shadow-xl p-8 md:p-10 border border-gray-100">
       <!-- 标题 -->
       <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">登录</h1>
-        <p class="mt-2 text-sm text-gray-600">欢迎回来！继续你的英语学习之旅</p>
+        <div class="inline-block mb-4">
+          <div class="text-6xl animate-bounce">🔐</div>
+        </div>
+        <h1 class="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">欢迎回来</h1>
+        <p class="mt-2 text-sm text-gray-600">继续你的英语学习之旅 🚀</p>
       </div>
 
       <!-- 登录表单 -->
@@ -12,7 +15,10 @@
         <!-- 用户名或邮箱输入 -->
         <div>
           <label for="identifier" class="block text-sm font-medium text-gray-700 mb-2">
-            用户名或邮箱
+            <span class="flex items-center gap-2">
+              <span>👤</span>
+              <span>用户名或邮箱</span>
+            </span>
           </label>
           <input
             id="identifier"
@@ -33,7 +39,10 @@
         <!-- 密码输入 -->
         <div>
           <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-            密码
+            <span class="flex items-center gap-2">
+              <span>🔑</span>
+              <span>密码</span>
+            </span>
           </label>
           <input
             id="password"
@@ -69,10 +78,10 @@
         <button
           type="submit"
           :disabled="loading"
-          class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105"
         >
           <span v-if="loading">登录中...</span>
-          <span v-else>登录</span>
+          <span v-else>立即登录 →</span>
         </button>
       </form>
 
