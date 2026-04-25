@@ -150,21 +150,24 @@
 
             <!-- 字符显示 -->
         <div
-          class="font-mono text-2xl tracking-widest text-center py-4 px-4 bg-gray-50 rounded-xl mb-4 min-h-16 flex items-center justify-center flex-wrap gap-0.5 cursor-text"
+          class="font-mono text-2xl tracking-widest text-center py-4 px-4 bg-gray-50 rounded-xl mb-4 min-h-16 flex items-center justify-center flex-wrap cursor-text"
           @click="focusInput"
         >
           <span
             v-for="(char, idx) in targetChars"
             :key="idx"
             :class="[
-              'inline-block transition-all',
+              'inline-block transition-all px-0.5 py-1 rounded',
+              char === ' ' ? 'mx-1 min-w-[0.6rem] text-center bg-transparent' : '',
               idx < userInput.length
-                ? (userInput[idx] === char ? 'text-green-500' : 'text-red-500 bg-red-50 rounded')
+                ? (userInput[idx] === char 
+                    ? (char === ' ' ? 'text-green-600 border-b-2 border-green-500' : 'text-green-500') 
+                    : (char === ' ' ? 'text-red-600 border-b-2 border-red-500' : 'text-red-500 bg-red-50'))
                 : idx === userInput.length
-                  ? 'border-b-2 border-blue-500 text-gray-800'
-                  : 'text-gray-400'
+                  ? (char === ' ' ? 'text-blue-600 border-b-3 border-blue-500 font-bold' : 'border-b-2 border-blue-500 text-gray-800')
+                  : (char === ' ' ? 'text-gray-300 border-b-2 border-dashed border-gray-300' : 'text-gray-400')
             ]"
-          >{{ char }}</span>
+          >{{ char === ' ' ? '\u00A0' : char }}</span>
         </div>
 
         <input

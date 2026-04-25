@@ -13,7 +13,8 @@
         :class="[
           'char',
           `char-${charState.status}`,
-          charState.status === 'current' && 'char-current-blink'
+          charState.status === 'current' && 'char-current-blink',
+          charState.char === ' ' && 'char-space'
         ]"
       >
         {{ charState.char === ' ' ? '\u00A0' : charState.char }}
@@ -150,7 +151,30 @@ onUnmounted(() => {
 }
 
 /* 空格字符特殊处理 */
-.char:has(> .space) {
+.char-space {
   min-width: 0.5rem;
+  padding-left: 0.125rem;
+  padding-right: 0.125rem;
+}
+
+/* 空格字符的样式 - 无背景无边框 */
+.char-space.char-correct {
+  background-color: transparent;
+  color: #10b981;
+}
+
+.char-space.char-incorrect {
+  background-color: transparent;
+  color: #ef4444;
+}
+
+.char-space.char-pending {
+  background-color: transparent;
+  color: #d1d5db;
+}
+
+.char-space.char-current {
+  background-color: transparent;
+    color: #3b82f6;
 }
 </style>
