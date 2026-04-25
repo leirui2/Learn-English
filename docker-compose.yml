@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # ===== MySQL 8.0 数据库服务 =====
+  mysql:
+    image: mysql:8.0
+    container_name: english-typing-mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      # root 用户密码
+      MYSQL_ROOT_PASSWORD: root
+      # 自动创建数据库
+      MYSQL_DATABASE: english_typing
+      # 字符集配置
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    volumes:
+      # 数据持久化（避免容器重启后数据丢失）
+      - mysql_data:/var/lib/mysql
+    command:
+      # 允许本地文件导入（用于 LOAD DATA LOCAL INFILE）
+      - --local-infile=1
+      # 设置默认认证插件（兼容旧版客户端）
+      - --default-authentication-plugin=mysql_native_password
+    networks:
+      - english-typing-network
+
+  # ===== Redis 7 缓存服务 =====
+  redis:
+    image: redis:7-alpine
+    container_name: english-typing-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      # 数据持久化
+      - redis_data:/data
+    command:
+      # 启用 AOF 持久化
+      - redis-server
+      - --appendonly yes
+    networks:
+      - english-typing-network
+
+# ===== 数据卷定义 =====
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ===== 网络定义 =====
+networks:
+  english-typing-network:
+    driver: bridge

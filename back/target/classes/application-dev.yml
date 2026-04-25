@@ -1,0 +1,54 @@
+# ===== 本地开发环境配置 =====
+# 激活方式：spring.profiles.active=dev
+# 此文件覆盖 application.yml 中的对应配置项
+
+spring:
+  # ===== 本地 MySQL 配置 =====
+  datasource:
+    url: jdbc:mysql://localhost:3306/Learn-English?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+
+  # ===== 本地 Redis 配置（无密码）=====
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+
+  # ===== 本地 SMTP 配置（使用 MailHog 或 GreenMail 模拟）=====
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: 1743477302@qq.com
+    password: mcaceeobvdhgcgad
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  # 开发环境显示 SQL 便于调试
+  jpa:
+    properties:
+      hibernate:
+        show_sql: true
+
+# ===== 开发环境应用配置 =====
+app:
+  jwt:
+    # 开发环境使用固定密钥（生产环境必须替换）
+    secret: dev-secret-key-for-local-development-only-not-for-production-use
+    access-token-expiration: 7200000
+    refresh-token-expiration: 604800000
+
+  frontend-url: http://localhost:5173
+
+# ===== 开发环境日志（更详细）=====
+logging:
+  level:
+    com.englishtyping: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

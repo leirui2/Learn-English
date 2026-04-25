@@ -1,0 +1,52 @@
+spring:
+  # ===== H2 内存数据库（测试专用）=====
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # ===== JPA 配置（H2 自动建表）=====
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        show_sql: false
+    open-in-view: false
+
+  # ===== 禁用 Flyway（H2 由 JPA 自动建表）=====
+  flyway:
+    enabled: false
+
+  # ===== Redis 配置（测试中通过 @MockBean 替换，此处仅占位）=====
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # ===== 禁用邮件自动配置（测试不需要真实 SMTP）=====
+  mail:
+    host: localhost
+    port: 25
+
+# ===== 应用自定义配置（测试专用固定值）=====
+app:
+  jwt:
+    # 测试专用 JWT 密钥（固定值，至少 256 位）
+    secret: test-jwt-secret-key-for-integration-tests-must-be-at-least-256-bits-long-enough
+    access-token-expiration: 7200000
+    refresh-token-expiration: 604800000
+  frontend-url: http://localhost:5173
+  password-reset:
+    token-expiration-minutes: 30
+    rate-limit-count: 3
+    rate-limit-window-minutes: 10
+
+# ===== 日志（测试时减少噪音）=====
+logging:
+  level:
+    com.englishtyping: DEBUG
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN

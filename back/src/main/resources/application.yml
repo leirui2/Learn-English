@@ -1,0 +1,100 @@
+server:
+  port: 8085
+
+spring:
+  # ===== 数据源配置（MySQL）=====
+  datasource:
+    # 数据库连接 URL，使用环境变量或默认占位符
+    url: ${DB_URL:jdbc:mysql://localhost:3306/Learn-English?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # ===== JPA / Hibernate 配置 =====
+  jpa:
+    hibernate:
+      # none：不自动建表，表结构由手动执行 SQL 脚本管理
+      ddl-auto: none
+    properties:
+      hibernate:
+        # 控制台打印 SQL（生产环境建议关闭）
+        show_sql: false
+        format_sql: true
+    # 关闭 open-in-view，避免懒加载陷阱
+    open-in-view: false
+
+  # ===== Redis 缓存配置 =====
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      # 连接超时（毫秒）
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+  # ===== 邮件（SMTP）配置 =====
+  mail:
+    host: ${SMTP_HOST:smtp.qq.com}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:1743477302@qq.com}
+    password: ${SMTP_PASSWORD:mcaceeobvdhgcgad}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+# ===== 应用自定义配置 =====
+app:
+  # JWT 配置
+  jwt:
+    # 签名密钥（生产环境必须替换为强随机字符串，至少 256 位）
+    secret: ${JWT_SECRET:your-very-long-and-secure-jwt-secret-key-at-least-256-bits-long}
+    # access token 有效期：2 小时（单位：毫秒）
+    access-token-expiration: ${JWT_ACCESS_EXPIRATION:7200000}
+    # refresh token 有效期：7 天（单位：毫秒）
+    refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+  # 前端地址（用于密码重置邮件中的链接）
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+
+  # 密码重置配置
+  password-reset:
+    # 令牌有效期：30 分钟（单位：分钟）
+    token-expiration-minutes: 30
+    # 同一邮箱 10 分钟内最多发送次数
+    rate-limit-count: 3
+    # 限流窗口（单位：分钟）
+    rate-limit-window-minutes: 10
+
+# ===== 日志配置 =====
+logging:
+  level:
+    com.englishtyping: INFO
+    org.springframework.security: WARN
+
+
+# ===== x-file-storage 文件存储配置 =====
+dromara:
+  x-file-storage: #文件存储配置
+    default-platform: minio-1 #默认使用的存储平台
+    thumbnail-suffix: ".min.jpg" #缩略图后缀，例如【.min.jpg】【.png】
+    #对应平台的配置写在这里，注意缩进要对齐
+    minio:
+      - platform: minio-1 # 存储平台标识
+        enable-storage: true  # 启用存储
+        access-key: NNGwh2CHvyFMMJvfJvad
+        secret-key: 2vuce5xwmOvUvwM5K6tvitTEnZIHxyMsI3NIl7op
+        end-point: http://10.126.126.1:8009
+        bucket-name: leirui-oss
+        domain: http://10.126.126.1:8009/leirui-oss/ # 访问域名，注意" /"结尾，例如：http://minio.abc.com/abc/
+        base-path: Learn-English/ # 基础路径
