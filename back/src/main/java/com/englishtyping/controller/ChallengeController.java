@@ -2,10 +2,15 @@ package com.englishtyping.controller;
 
 import com.englishtyping.dto.*;
 import com.englishtyping.entity.ChallengeRecord;
+import com.englishtyping.entity.DailyCheckin;
 import com.englishtyping.entity.Exercise;
+import com.englishtyping.entity.PointsRecord;
+import com.englishtyping.entity.PointsType;
 import com.englishtyping.entity.User;
 import com.englishtyping.repository.ChallengeRecordRepository;
+import com.englishtyping.repository.DailyCheckinRepository;
 import com.englishtyping.repository.ExerciseRepository;
+import com.englishtyping.repository.PointsRecordRepository;
 import com.englishtyping.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +33,8 @@ public class ChallengeController {
     private final ExerciseRepository exerciseRepository;
     private final ChallengeRecordRepository challengeRecordRepository;
     private final UserRepository userRepository;
+    private final DailyCheckinRepository dailyCheckinRepository;
+    private final PointsRecordRepository pointsRecordRepository;
 
     /**
      * 获取随机练习内容
@@ -68,7 +76,7 @@ public class ChallengeController {
      * POST /challenge/submit
      */
     @PostMapping("/submit")
-    public ResponseEntity<ApiResult<Void>> submitChallenge(
+    public ResponseEntity<ApiResult<SubmitChallengeResponse>> submitChallenge(
             @Valid @RequestBody SubmitChallengeRequest request,
             Authentication authentication) {
 
@@ -86,7 +94,77 @@ public class ChallengeController {
                 .build();
 
         challengeRecordRepository.save(record);
-        return ResponseEntity.ok(ApiResult.success(null));
+        
+        // 计算天梯挑战积分：基础分 = passedCount * 10，正确率加成 = accuracy * 2
+        int challengeScore = (int) (request.getPassedCount() * 10 + request.getAccuracy() * 2);
+        
+        // 获取用户并更新积分
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("用户不存在"));
+        
+        user.setTotalScore(user.getTotalScore() + challengeScore);
+        userRepository.save(user);
+        
+        // 记录积分变动（天梯挑战）
+        PointsRecord challengeRecord2 = PointsRecord.builder()
+                .userId(userId)
+                .points(challengeScore)
+                .type(PointsType.CHALLENGE)
+                .description("天梯挑战: " + request.getContentType() + " - " + request.getTimeMode())
+                .relatedId(record.getId())
+                .balanceAfter(user.getTotalScore())
+                .build();
+        pointsRecordRepository.save(challengeRecord2);
+        
+        // 处理每日打卡逻辑（参加天梯赛也算打卡）
+        boolean checkedIn = false;
+        int checkinBonus = 0;
+        LocalDate today = LocalDate.now();
+        
+        if (dailyCheckinRepository.findByUserIdAndCheckinDate(userId, today).isEmpty()) {
+            // 创建今日打卡记录
+            DailyCheckin checkin = DailyCheckin.builder()
+                    .user(user)
+                    .checkinDate(today)
+                    .build();
+            dailyCheckinRepository.save(checkin);
+            checkedIn = true;
+
+            // 更新连续打卡天数
+            LocalDate yesterday = today.minusDays(1);
+            if (user.getLastCheckinDate() != null && 
+                user.getLastCheckinDate().toLocalDate().equals(yesterday)) {
+                // 昨天有打卡，连续天数 +1
+                user.setStreak(user.getStreak() + 1);
+            } else {
+                // 断日，重置为 1
+                user.setStreak(1);
+            }
+            
+            user.setLastCheckinDate(today.atStartOfDay());
+
+            // 检查是否达到 7 的整数倍，发放奖励
+            if (user.getStreak() % 7 == 0) {
+                checkinBonus = 50;
+                user.setTotalScore(user.getTotalScore() + checkinBonus);
+                userRepository.save(user);
+                
+                // 记录打卡奖励积分变动
+                PointsRecord checkinBonusRecord = PointsRecord.builder()
+                        .userId(userId)
+                        .points(checkinBonus)
+                        .type(PointsType.CHECKIN_BONUS)
+                        .description("连续打卡 " + user.getStreak() + " 天奖励")
+                        .relatedId(null)
+                        .balanceAfter(user.getTotalScore())
+                        .build();
+                pointsRecordRepository.save(checkinBonusRecord);
+            } else {
+                userRepository.save(user);
+            }
+        }
+        
+        return ResponseEntity.ok(ApiResult.success(new SubmitChallengeResponse(checkedIn, checkinBonus)));
     }
 
     /**

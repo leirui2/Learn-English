@@ -100,12 +100,18 @@
             </div>
             <div class="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{{ stats?.totalCompletedLevels || 0 }}</div>
           </div>
-          <div class="bg-white rounded-2xl shadow-lg p-6 border border-orange-100 hover:shadow-2xl transition transform hover:scale-105">
+          <div class="bg-white rounded-2xl shadow-lg p-6 border border-orange-100 hover:shadow-2xl transition transform hover:scale-105 cursor-pointer" @click="goToPointsHistory">
             <div class="flex items-center gap-3 mb-3">
               <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-2xl shadow-lg">⭐</div>
               <span class="text-sm text-gray-600 font-medium">总积分</span>
             </div>
             <div class="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">{{ stats?.totalScore || 0 }}</div>
+            <div class="text-xs text-blue-500 mt-2 flex items-center gap-1">
+              <span>查看明细</span>
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
           </div>
         </div>
 
@@ -389,6 +395,10 @@ const getAccuracyBg = (accuracy: number) => {
   if (accuracy >= 85) return 'bg-blue-500'
   if (accuracy >= 75) return 'bg-yellow-500'
   return 'bg-red-500'
+}
+
+const goToPointsHistory = () => {
+  window.location.href = '/points/history'
 }
 
 const completedLevels = computed(() => {

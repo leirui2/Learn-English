@@ -82,6 +82,8 @@ const menuItems = [
   { to: '/admin/categories', label: '分类管理', icon: '🏷️' },
   { to: '/admin/levels', label: '关卡管理', icon: '📚' },
   { to: '/admin/exercises', label: '练习内容', icon: '✏️' },
+  { to: '/admin/gifts', label: '道具管理', icon: '🎁' },
+  { to: '/admin/points', label: '积分记录', icon: '💰' },
   { to: '/admin/logs', label: '操作日志', icon: '📝' },
 ]
 

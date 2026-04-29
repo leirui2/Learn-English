@@ -76,6 +76,11 @@ app:
     # 限流窗口（单位：分钟）
     rate-limit-window-minutes: 10
 
+  # 道具配置
+  gift:
+    # 默认道具图片 URL（管理员未上传图片时使用）
+    default-image-url: ${GIFT_DEFAULT_IMAGE_URL:http://10.126.126.1:8009/leirui-oss/Learn-English/default-gift.png}
+
 # ===== 日志配置 =====
 logging:
   level:

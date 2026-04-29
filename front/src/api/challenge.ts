@@ -16,6 +16,11 @@ export interface SubmitChallengeRequest {
   wpm: number
 }
 
+export interface SubmitChallengeResponse {
+  checkedIn: boolean
+  checkinBonus: number
+}
+
 export interface ChallengeLeaderboardEntry {
   rank: number
   userId: string

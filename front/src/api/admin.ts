@@ -161,3 +161,34 @@ export const updateExercise = (id: number, data: { levelId: number; contentEn: s
 
 export const deleteExercise = (id: number) =>
   apiClient.delete(`/admin/exercises/${id}`)
+
+// ===== 积分记录管理 =====
+export interface AdminPointsRecordDto {
+  id: number
+  userId: string
+  username: string
+  points: number
+  type: string
+  description: string
+  relatedId: number | null
+  balanceAfter: number
+  createdAt: string
+}
+
+export interface AdminPointsRecordPageResponse {
+  records: AdminPointsRecordDto[]
+  total: number
+  page: number
+  size: number
+  totalPages: number
+}
+
+export const getAdminPointsRecords = (params: {
+  userId?: string
+  username?: string
+  type?: string
+  startDate?: string
+  endDate?: string
+  page?: number
+  size?: number
+}) => apiClient.get<AdminPointsRecordPageResponse>('/admin/points/records', { params })

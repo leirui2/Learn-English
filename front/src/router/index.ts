@@ -84,6 +84,30 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/ProfileView.vue'),
     meta: { layout: 'main', requiresAuth: true }
   },
+  {
+    path: '/points/history',
+    name: 'PointsHistory',
+    component: () => import('@/views/PointsHistoryView.vue'),
+    meta: { layout: 'main', requiresAuth: true }
+  },
+  {
+    path: '/gifts',
+    name: 'Gifts',
+    component: () => import('@/views/GiftMallView.vue'),
+    meta: { layout: 'main', requiresAuth: true }
+  },
+  {
+    path: '/my-items',
+    name: 'MyItems',
+    component: () => import('@/views/MyItemsView.vue'),
+    meta: { layout: 'main', requiresAuth: true }
+  },
+  {
+    path: '/exchange-records',
+    name: 'ExchangeRecords',
+    component: () => import('@/views/ExchangeRecordsView.vue'),
+    meta: { layout: 'main', requiresAuth: true }
+  },
 
   // 管理员路由（需要管理员权限，不使用布局因为页面自带导航）
   {
@@ -121,6 +145,18 @@ const routes: RouteRecordRaw[] = [
     name: 'AdminLogs',
     component: () => import('@/views/admin/OperationLogs.vue'),
     meta: { layout: 'admin', requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/points',
+    name: 'AdminPoints',
+    component: () => import('@/views/admin/PointsRecords.vue'),
+    meta: { layout: 'admin', requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/gifts',
+    name: 'AdminGifts',
+    component: () => import('@/views/admin/GiftManagementView.vue'),
+    meta: { layout: 'admin', requiresAuth: true, requiresAdmin: true }
   }
 ]
 
@@ -130,25 +166,35 @@ const router = createRouter({
   routes
 })
 
-// 全局路由守卫：检查登录状态和管理员权限
-router.beforeEach((to, _from, next) => {
+// 全局路由守卫:检查登录状态和管理员权限
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
   const requiresAuth = to.meta.requiresAuth
   const requiresAdmin = to.meta.requiresAdmin
 
-  // 如果路由需要登录且用户未登录，跳转到登录页
-  if (requiresAuth && !authStore.isLoggedIn) {
-    next({ name: 'Login', query: { redirect: to.fullPath } })
-    return
+  // 如果路由需要登录,检查用户是否真的已登录(有 token 且有用户信息)
+  if (requiresAuth) {
+    // 如果没有任何 token,直接跳转登录页
+    if (!authStore.isLoggedIn) {
+      next({ name: 'Login', query: { redirect: to.fullPath } })
+      return
+    }
+    
+    // 如果有 token 但没有用户信息,说明数据不一致,清除并跳转登录页
+    if (!authStore.userInfo) {
+      authStore.logout()
+      next({ name: 'Login', query: { redirect: to.fullPath } })
+      return
+    }
   }
 
-  // 如果路由需要管理员权限但用户不是管理员，跳转到主页
+  // 如果路由需要管理员权限但用户不是管理员,跳转到主页
   if (requiresAdmin && !authStore.isAdmin) {
     next({ name: 'Home' })
     return
   }
 
-  // 如果用户已登录且访问登录页，根据角色自动跳转
+  // 如果用户已登录且访问登录页,根据角色自动跳转
   if (to.name === 'Login' && authStore.isLoggedIn) {
     if (authStore.isAdmin) {
       next({ name: 'Admin' })

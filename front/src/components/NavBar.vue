@@ -122,6 +122,7 @@ const navItems = [
   { to: '/challenge', label: '天梯挑战', icon: '⚡' },
   { to: '/finger-typing', label: '指法训练', icon: '⌨️', desktopOnly: true },
   { to: '/leaderboard', label: '排行榜', icon: '🏆' },
+  { to: '/gifts', label: '积分商城', icon: '🎁' },
   { to: '/profile', label: '个人中心', icon: '👤' },
 ]
 

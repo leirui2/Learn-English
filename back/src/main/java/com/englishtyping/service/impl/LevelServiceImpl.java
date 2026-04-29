@@ -34,6 +34,7 @@ public class LevelServiceImpl implements LevelService {
     private final TypingSessionRepository typingSessionRepository;
     private final WordErrorStatRepository wordErrorStatRepository;
     private final DailyCheckinRepository dailyCheckinRepository;
+    private final PointsRecordRepository pointsRecordRepository;
 
     @Override
     public List<CategoryDto> getLevelList(String userId) {
@@ -140,8 +141,20 @@ public class LevelServiceImpl implements LevelService {
         int score = calculateScore(request.getAccuracy(), request.getTimeMs(), level.getStandardTimeMs());
 
         // 5. 更新用户总积分
+        int oldScore = user.getTotalScore();
         user.setTotalScore(user.getTotalScore() + score);
         userRepository.save(user);
+
+        // 5.1 记录积分变动（关卡完成）
+        PointsRecord levelCompleteRecord = PointsRecord.builder()
+                .userId(userId)
+                .points(score)
+                .type(PointsType.LEVEL_COMPLETE)
+                .description("完成关卡: " + level.getName())
+                .relatedId(levelId.longValue())
+                .balanceAfter(user.getTotalScore())
+                .build();
+        pointsRecordRepository.save(levelCompleteRecord);
 
         // 6. 更新关卡进度
         boolean isCompleted = request.getAccuracy() >= 80.0;
@@ -243,10 +256,23 @@ public class LevelServiceImpl implements LevelService {
             // 检查是否达到 7 的整数倍，发放奖励
             if (user.getStreak() % 7 == 0) {
                 checkinBonus = 50;
+                int scoreBeforeBonus = user.getTotalScore();
                 user.setTotalScore(user.getTotalScore() + checkinBonus);
-            }
+                userRepository.save(user);
 
-            userRepository.save(user);
+                // 记录打卡奖励积分变动
+                PointsRecord checkinBonusRecord = PointsRecord.builder()
+                        .userId(userId)
+                        .points(checkinBonus)
+                        .type(PointsType.CHECKIN_BONUS)
+                        .description("连续打卡 " + user.getStreak() + " 天奖励")
+                        .relatedId(null)
+                        .balanceAfter(user.getTotalScore())
+                        .build();
+                pointsRecordRepository.save(checkinBonusRecord);
+            } else {
+                userRepository.save(user);
+            }
         }
 
         // 11. 构建响应

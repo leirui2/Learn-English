@@ -204,6 +204,17 @@
       <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md text-center">
         <div class="text-5xl mb-4">🎉</div>
         <h2 class="text-2xl font-bold text-gray-900 mb-6">挑战结束！</h2>
+        
+        <!-- 打卡提示 -->
+        <div v-if="challengeCheckedIn" class="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl">
+          <div class="flex items-center justify-center gap-2 text-green-700">
+            <span class="text-xl">✅</span>
+            <span class="font-semibold">打卡成功！</span>
+            <span v-if="challengeCheckinBonus > 0" class="text-sm bg-green-200 px-2 py-0.5 rounded-full">
+              +{{ challengeCheckinBonus }} 积分奖励
+            </span>
+          </div>
+        </div>
 
         <div class="space-y-3 mb-6">
           <div class="flex justify-between items-center py-2 border-b border-gray-100">
@@ -347,6 +358,10 @@ type TimeMode = 'TIMED' | 'INFINITE'
 const phase = ref<Phase>('setup')
 const inputRef = ref<HTMLInputElement | null>(null)
 
+// 打卡状态
+const challengeCheckedIn = ref(false)
+const challengeCheckinBonus = ref(0)
+
 // 配置
 const selectedType = ref<ContentType>('WORD')
 const selectedMode = ref<TimeMode>('TIMED')
@@ -475,6 +490,8 @@ const startGame = async () => {
   correctTyped.value = 0
   elapsedMs.value = 0
   timeLeft.value = selectedTimeLimit.value
+  challengeCheckedIn.value = false
+  challengeCheckinBonus.value = 0
 
   // 加载练习内容
   const res = await getRandomExercises(selectedType.value, 30)
@@ -542,7 +559,7 @@ const endChallenge = async () => {
 
   // 提交结果
   try {
-    await submitChallenge({
+    const response = await submitChallenge({
       contentType: selectedType.value,
       timeMode: selectedMode.value,
       timeLimit: selectedMode.value === 'TIMED' ? selectedTimeLimit.value : undefined,
@@ -551,6 +568,13 @@ const endChallenge = async () => {
       timeMs: selectedMode.value === 'INFINITE' ? elapsedMs.value : undefined,
       wpm: currentWpm.value
     })
+    
+    // 处理打卡响应
+    const data = (response.data as any).data || response.data
+    if (data) {
+      challengeCheckedIn.value = data.checkedIn || false
+      challengeCheckinBonus.value = data.checkinBonus || 0
+    }
   } catch (e) {
     console.error('提交失败:', e)
   }

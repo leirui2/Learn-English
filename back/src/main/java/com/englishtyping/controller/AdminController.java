@@ -1,12 +1,21 @@
 package com.englishtyping.controller;
 
+import com.englishtyping.dto.AdminPointsRecordPageResponse;
+import com.englishtyping.dto.CreateGiftRequest;
+import com.englishtyping.dto.GiftDto;
+import com.englishtyping.dto.UpdateGiftRequest;
 import com.englishtyping.dto.admin.*;
+import com.englishtyping.entity.PointsType;
 import com.englishtyping.entity.UserRole;
 import com.englishtyping.entity.UserStatus;
 import com.englishtyping.service.AdminService;
+import com.englishtyping.service.GiftService;
+import com.englishtyping.service.PointsRecordService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,6 +35,8 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final GiftService giftService;
+    private final PointsRecordService pointsRecordService;
 
     /**
      * 获取用户列表（分页、搜索、筛选）
@@ -338,6 +349,130 @@ public class AdminController {
                 operatorId, operationType, targetType, startDate, endDate, page, size
         );
         return ResponseEntity.ok(ApiResult.success(logs));
+    }
+
+    /**
+     * 查询所有用户的积分记录（分页，支持多条件筛选）
+     * GET /admin/points/records
+     *
+     * @param userId 用户ID（可选）
+     * @param username 用户名（可选，模糊查询）
+     * @param type 积分类型（可选）
+     * @param startDate 开始时间（可选）
+     * @param endDate 结束时间（可选）
+     * @param page 页码（从0开始，默认0）
+     * @param size 每页大小（默认20）
+     */
+    @GetMapping("/points/records")
+    public ResponseEntity<ApiResult<AdminPointsRecordPageResponse>> getAllPointsRecords(
+            @RequestParam(required = false) String userId,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) PointsType type,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        AdminPointsRecordPageResponse response = pointsRecordService.getAllPointsRecords(
+                userId, username, type, startDate, endDate, page, size);
+        return ResponseEntity.ok(ApiResult.success(response));
+    }
+
+    // ===== 道具管理 =====
+
+    /**
+     * 获取所有道具（分页）
+     * GET /admin/gifts
+     *
+     * @param page 页码（从 0 开始，默认 0）
+     * @param size 每页大小（默认 20）
+     */
+    @GetMapping("/gifts")
+    public ResponseEntity<ApiResult<Page<GiftDto>>> getAllGifts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<GiftDto> gifts = giftService.getAllGifts(pageRequest);
+        return ResponseEntity.ok(ApiResult.success(gifts));
+    }
+
+    /**
+     * 获取道具详情
+     * GET /admin/gifts/{id}
+     */
+    @GetMapping("/gifts/{id}")
+    public ResponseEntity<ApiResult<GiftDto>> getGiftDetail(@PathVariable Long id) {
+        GiftDto gift = giftService.getGiftDetail(id);
+        return ResponseEntity.ok(ApiResult.success(gift));
+    }
+
+    /**
+     * 创建道具
+     * POST /admin/gifts
+     */
+    @PostMapping("/gifts")
+    public ResponseEntity<ApiResult<GiftDto>> createGift(
+            @Valid @RequestBody CreateGiftRequest request
+    ) {
+        GiftDto gift = giftService.createGift(request);
+        return ResponseEntity.ok(ApiResult.success(gift));
+    }
+
+    /**
+     * 更新道具
+     * PUT /admin/gifts/{id}
+     */
+    @PutMapping("/gifts/{id}")
+    public ResponseEntity<ApiResult<GiftDto>> updateGift(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateGiftRequest request
+    ) {
+        GiftDto gift = giftService.updateGift(id, request);
+        return ResponseEntity.ok(ApiResult.success(gift));
+    }
+
+    /**
+     * 删除道具
+     * DELETE /admin/gifts/{id}
+     */
+    @DeleteMapping("/gifts/{id}")
+    public ResponseEntity<ApiResult<Void>> deleteGift(@PathVariable Long id) {
+        giftService.deleteGift(id);
+        return ResponseEntity.ok(ApiResult.success(null));
+    }
+
+    /**
+     * 上架道具
+     * PUT /admin/gifts/{id}/on-shelf
+     */
+    @PutMapping("/gifts/{id}/on-shelf")
+    public ResponseEntity<ApiResult<Void>> onShelf(@PathVariable Long id) {
+        giftService.onShelf(id);
+        return ResponseEntity.ok(ApiResult.success(null));
+    }
+
+    /**
+     * 下架道具
+     * PUT /admin/gifts/{id}/off-shelf
+     */
+    @PutMapping("/gifts/{id}/off-shelf")
+    public ResponseEntity<ApiResult<Void>> offShelf(@PathVariable Long id) {
+        giftService.offShelf(id);
+        return ResponseEntity.ok(ApiResult.success(null));
+    }
+
+    /**
+     * 上传道具图片
+     * POST /admin/gifts/{id}/image
+     */
+    @PostMapping("/gifts/{id}/image")
+    public ResponseEntity<ApiResult<String>> uploadGiftImage(
+            @PathVariable Long id,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file
+    ) {
+        String imageUrl = giftService.uploadGiftImage(id, file);
+        return ResponseEntity.ok(ApiResult.success(imageUrl));
     }
 
     // ===== 内部统一响应包装类 =====

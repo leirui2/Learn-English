@@ -23,19 +23,21 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// 响应拦截器：处理 token 过期
+// 响应拦截器:处理 token 过期和认证失败
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
+    const status = error.response?.status
     
-    // 如果是 401 错误且不是刷新 token 请求，尝试刷新 token
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // 如果是 401 或 403 错误,且不是刷新 token 请求
+    if ((status === 401 || status === 403) && !originalRequest._retry) {
       originalRequest._retry = true
       
       try {
         const refreshToken = localStorage.getItem('refresh_token')
         if (refreshToken) {
+          // 尝试刷新 token
           const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
             refreshToken
           })
@@ -48,11 +50,15 @@ apiClient.interceptors.response.use(
           return apiClient(originalRequest)
         }
       } catch (refreshError) {
-        // 刷新失败，清除登录状态
+        // 刷新失败或没有 refresh token,清除登录状态并跳转登录页
         localStorage.removeItem('access_token')
         localStorage.removeItem('refresh_token')
         localStorage.removeItem('user_info')
-        window.location.href = '/login'
+        
+        // 避免重复跳转
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login?redirect=' + encodeURIComponent(window.location.pathname)
+        }
         return Promise.reject(refreshError)
       }
     }

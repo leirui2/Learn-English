@@ -207,6 +207,20 @@ interface CharDisplayProps {
 | GET | `/stats/me` | 获取个人统计数据 |
 | GET | `/stats/weak-words` | 获取易错词汇 Top 10 |
 
+#### 积分记录模块 `/points`
+
+| 方法 | 路径 | 描述 | 权限 |
+|------|------|------|------|
+| GET | `/points/records` | 获取当前用户积分记录（分页，支持按类型筛选） | USER |
+| GET | `/admin/points/records` | 获取所有用户积分记录（分页，支持按用户名、用户ID、类型、时间范围筛选） | ADMIN |
+
+**管理员查询参数**：
+- `userId`：按用户 ID 查询（可选）
+- `username`：按用户名搜索（可选）
+- `type`：按积分类型筛选（LEVEL_COMPLETE/CHALLENGE/CHECKIN_BONUS/GIFT_EXCHANGE 等，可选）
+- `startDate`：开始日期（可选）
+- `endDate`：结束日期（可选）
+
 ---
 
 ## 数据模型
@@ -293,15 +307,64 @@ erDiagram
         timestamp last_error_at
     }
 
+    points_records {
+        bigint id PK
+        char user_id FK
+        int points
+        string type
+        string description
+        bigint related_id
+        int balance_after
+        timestamp created_at
+    }
+
+    challenge_records {
+        bigint id PK
+        char user_id FK
+        string content_type
+        string time_mode
+        int time_limit
+        int passed_count
+        float accuracy
+        bigint time_ms
+        float wpm
+        timestamp created_at
+    }
+
+    gifts {
+        bigint id PK
+        string name
+        string description
+        string icon
+        int points_cost
+        int stock
+        string status
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    user_items {
+        bigint id PK
+        char user_id FK
+        bigint gift_id FK
+        string status
+        timestamp redeemed_at
+        timestamp used_at
+    }
+
     users ||--o{ user_level_progress : "has"
     users ||--o{ typing_sessions : "completes"
     users ||--o{ daily_checkins : "records"
     users ||--o{ password_reset_tokens : "requests"
     users ||--o{ word_error_stats : "accumulates"
+    users ||--o{ points_records : "accumulates"
+    users ||--o{ challenge_records : "participates"
+    users ||--o{ user_items : "owns"
     levels ||--o{ exercises : "contains"
     levels ||--o{ user_level_progress : "tracked_by"
     levels ||--o{ typing_sessions : "generates"
     categories ||--o{ levels : "contains"
+    gifts ||--o{ user_items : "redeemed_by"
 ```
 
 ### 关键数据模型说明
@@ -319,6 +382,21 @@ erDiagram
 **word_error_stats**
 - 每次打字会话结束后，批量 upsert 错误字符对应的单词
 - 按 `error_count DESC` 取前 10 条作为易错词汇
+
+**points_records**
+- 记录所有积分变动明细，支持积分获得和消耗的历史追溯
+- `points`：正数表示获得积分，负数表示消耗积分
+- `type`：变动类型（LEVEL_COMPLETE/CHALLENGE/CHECKIN_BONUS/GIFT_EXCHANGE/ADMIN_GRANT/ACTIVITY_BONUS）
+- `related_id`：关联业务 ID（关卡 ID/挑战记录 ID/道具 ID 等），用于追溯来源
+- `balance_after`：变动后的积分余额，方便对账和审计
+
+**gifts**
+- 虚拟道具商城的商品表，所有道具均为虚拟商品（如改名卡）
+- `points_cost`：兑换所需积分
+- `stock`：库存数量，为 0 时不可兑换
+- `status`：道具状态（ON_SHELF 上架/OFF_SHELF 下架）
+- 兑换流程：验证积分和库存 → 扣除积分 → 扣减库存 → 记录积分变动 → 添加至用户背包 → 立即生效或待使用
+- 无需发货流程，兑换即完成
 
 ### Redis 缓存键设计
 

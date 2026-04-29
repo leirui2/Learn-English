@@ -240,8 +240,9 @@ const loadLeaderboard = async () => {
     const response = await getLeaderboard(params)
     entries.value = response.data.entries || []
     currentUserRank.value = response.data.currentUserRank || null
-  } catch (error) {
+  } catch (error: any) {
     console.error('加载排行榜失败:', error)
+    // 401/403 错误会由 axios 拦截器自动处理，这里只记录日志
   } finally {
     loading.value = false
   }
@@ -256,8 +257,9 @@ const loadChallengeLeaderboard = async () => {
       timeLimit: clbMode.value === 'TIMED' ? clbTimeLimit.value : undefined
     })
     challengeEntries.value = (res.data as any).data || res.data
-  } catch (e) {
-    console.error(e)
+  } catch (error: any) {
+    console.error(error)
+    // 401/403 错误会由 axios 拦截器自动处理，这里只记录日志
   } finally {
     clbLoading.value = false
   }
@@ -268,8 +270,9 @@ const loadCategories = async () => {
     const response = await getLevels()
     const data = (response.data as any).data
     categories.value = data.map((item: any) => ({ id: item.id, name: item.name }))
-  } catch (error) {
+  } catch (error: any) {
     console.error('加载分类失败:', error)
+    // 401/403 错误会由 axios 拦截器自动处理，这里只记录日志
   }
 }
 
