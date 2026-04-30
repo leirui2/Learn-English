@@ -29,12 +29,12 @@ const routes: RouteRecordRaw[] = [
     meta: { layout: 'auth', requiresAuth: false }
   },
 
-  // 主应用路由（使用 MainLayout，需要登录）
+  // 主应用路由（使用 MainLayout）
   {
     path: '/',
     name: 'Home',
     component: () => import('@/views/HomeView.vue'),
-    meta: { layout: 'main', requiresAuth: true }
+    meta: { layout: 'main', requiresAuth: false }
   },
   {
     path: '/levels',
@@ -58,13 +58,13 @@ const routes: RouteRecordRaw[] = [
     path: '/leaderboard',
     name: 'Leaderboard',
     component: () => import('@/views/LeaderboardView.vue'),
-    meta: { layout: 'main', requiresAuth: true }
+    meta: { layout: 'main', requiresAuth: false }
   },
   {
     path: '/finger-typing',
     name: 'FingerTyping',
     component: () => import('@/views/FingerTypingView.vue'),
-    meta: { layout: 'main', requiresAuth: true }
+    meta: { layout: 'main', requiresAuth: false }
   },
   {
     path: '/challenge',
@@ -156,6 +156,12 @@ const routes: RouteRecordRaw[] = [
     path: '/admin/gifts',
     name: 'AdminGifts',
     component: () => import('@/views/admin/GiftManagementView.vue'),
+    meta: { layout: 'admin', requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/leaderboard-titles',
+    name: 'AdminLeaderboardTitles',
+    component: () => import('@/views/admin/LeaderboardTitleManagement.vue'),
     meta: { layout: 'admin', requiresAuth: true, requiresAdmin: true }
   }
 ]

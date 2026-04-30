@@ -402,26 +402,64 @@
     - GET /user/exchange-records（获取当前用户的兑换历史记录）
 
 - [ ] 23. 虚拟道具商城模块（前端）
-  - [ ] 23.1 创建道具相关 API 文件 `gift.ts`
+  - [x] 23.1 创建道具相关 API 文件 `gift.ts`
     - 封装 getGifts、exchangeGift、getMyItems、useItem、getExchangeRecords 等接口
-  - [ ] 23.2 实现道具商城页面 `GiftMallView`
+  - [x] 23.2 实现道具商城页面 `GiftMallView`
     - 道具网格展示（图标、名称、所需积分、库存状态）
     - 库存不足显示“暂时缺货”，积分不足显示“积分不足”
     - 点击道具查看详情，确认兑换按钮（二次确认弹窗）
     - 兑换成功后提示“兑换成功”，并刷新积分显示
-  - [ ] 23.3 实现我的道具背包页面 `MyItemsView`
+  - [x] 23.3 实现我的道具背包页面 `MyItemsView`
     - 道具列表展示，显示道具名称、状态（未使用/已使用）、兑换时间
     - 未使用的道具显示“使用”按钮（如改名卡）
-  - [ ] 23.4 实现我的兑换记录页面 `ExchangeRecordsView`
+  - [x] 23.4 实现我的兑换记录页面 `ExchangeRecordsView`
     - 兑换历史列表（分页），显示道具名称、消耗积分、兑换时间、状态
-  - [ ] 23.5 实现管理员道具管理页面 `GiftManagementView`
+  - [x] 23.5 实现管理员道具管理页面 `GiftManagementView`
     - 道具列表管理（添加、编辑、下架）
     - 库存管理（设置库存、补货）
     - 积分设置（调整所需积分）
     - 上下架状态切换
-  - [ ] 23.6 添加路由和导航入口
+  - [x] 23.6 添加路由和导航入口
     - 用户端：/gifts（商城）、/my-items（我的背包）、/exchange-records（兑换记录）
     - 管理端：/admin/gifts（道具管理）
+
+- [x] 24. 排行榜称号系统
+  - [x] 24.1 创建排行榜称号数据库表
+    - 创建 leaderboard_titles 表，包含 id、name（称号名称）、min_rank（最小排名）、max_rank（最大排名）、icon（称号图标emoji）、color（称号颜色）、sort_order（排序）、created_at、updated_at
+    - 创建索引：idx_rank_range（min_rank, max_rank）、idx_sort_order（sort_order）
+    - 插入默认称号数据：最强王者（1）、钻石（2-3）、白金（4-10）、黄金（11-30）、白银（31-50）、青铜（51-100）、新手（101+）
+    - _需求：称号系统按排名区间划分，管理员可灵活配置_
+  - [x] 24.2 创建称号实体类和 Repository
+    - 创建 LeaderboardTitle JPA 实体类
+    - 创建 LeaderboardTitleRepository，提供按排序字段查询和按排名区间查询的方法
+  - [x] 24.3 创建称号相关 DTO
+    - 创建 LeaderboardTitleDto（包含 id、name、minRank、maxRank、icon、color、sortOrder）
+    - 创建 CreateLeaderboardTitleRequest（创建称号请求）
+    - 创建 UpdateLeaderboardTitleRequest（更新称号请求）
+  - [x] 24.4 扩展排行榜 DTO
+    - 在 LeaderboardEntryDto 中添加 title 字段（称号名称）
+  - [x] 24.5 实现称号查询逻辑
+    - 在 LeaderboardService 中添加 getAllTitles() 和 getTitleByRank(rank) 方法
+    - 在 LeaderboardServiceImpl 中实现根据排名查询称号的逻辑
+    - 在构建排行榜时为每个条目自动设置称号
+  - [x] 24.6 实现管理员称号管理接口
+    - 在 AdminService 中添加称号管理方法：getAllLeaderboardTitles、createLeaderboardTitle、updateLeaderboardTitle、deleteLeaderboardTitle
+    - 在 AdminServiceImpl 中实现称号管理的 CRUD 逻辑
+    - 在 AdminController 中添加称号管理接口：GET /admin/leaderboard-titles、POST /admin/leaderboard-titles、PUT /admin/leaderboard-titles/{id}、DELETE /admin/leaderboard-titles/{id}
+  - [x] 24.7 创建称号管理 API 文件（前端）
+    - 在 front/src/api/admin.ts 中添加称号相关接口：getLeaderboardTitles、createLeaderboardTitle、updateLeaderboardTitle、deleteLeaderboardTitle
+  - [x] 24.8 实现管理员称号管理页面
+    - 创建 LeaderboardTitleManagement.vue 页面
+    - 称号列表展示（表格形式）：称号名称、排名区间、图标、颜色、排序
+    - 操作：添加称号、编辑称号、删除称号
+    - 编辑弹窗：可修改称号名称、排名区间、图标、颜色、排序
+    - _需求：管理员可灵活配置称号规则，无需修改代码_
+  - [x] 24.9 修改排行榜页面显示称号
+    - 在 LeaderboardView.vue 中为每个用户条目显示称号
+    - 称号样式：根据称号颜色显示，高亮前3名（🥇🥈🥉）
+    - 称号显示位置：用户名旁边或单独一列
+  - [x] 24.10 添加路由和导航入口
+    - 管理端：/admin/leaderboard-titles（称号管理），在 AdminLayout 侧边栏添加导航入口
 
 ---
 

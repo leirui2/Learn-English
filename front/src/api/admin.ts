@@ -1,5 +1,12 @@
 import apiClient from './auth'
 
+// 后端统一响应格式
+interface ApiResult<T> {
+  code: number
+  message: string
+  data: T
+}
+
 export interface UserListDto {
   id: string
   username: string
@@ -192,3 +199,52 @@ export const getAdminPointsRecords = (params: {
   page?: number
   size?: number
 }) => apiClient.get<AdminPointsRecordPageResponse>('/admin/points/records', { params })
+
+// ===== 称号管理 =====
+export interface LeaderboardTitleDto {
+  id: number
+  name: string
+  minRank: number
+  maxRank: number
+  icon?: string
+  color?: string
+  sortOrder: number
+}
+
+export interface CreateLeaderboardTitleRequest {
+  name: string
+  minRank: number
+  maxRank: number
+  icon?: string
+  color?: string
+  sortOrder: number
+}
+
+export interface UpdateLeaderboardTitleRequest {
+  name?: string
+  minRank?: number
+  maxRank?: number
+  icon?: string
+  color?: string
+  sortOrder?: number
+}
+
+// 获取所有称号
+export const getLeaderboardTitles = () =>
+  apiClient.get<ApiResult<LeaderboardTitleDto[]>>('/admin/leaderboard-titles')
+
+// 获取称号详情
+export const getLeaderboardTitleDetail = (id: number) =>
+  apiClient.get<ApiResult<LeaderboardTitleDto>>(`/admin/leaderboard-titles/${id}`)
+
+// 创建称号
+export const createLeaderboardTitle = (data: CreateLeaderboardTitleRequest) =>
+  apiClient.post<ApiResult<LeaderboardTitleDto>>('/admin/leaderboard-titles', data)
+
+// 更新称号
+export const updateLeaderboardTitle = (id: number, data: UpdateLeaderboardTitleRequest) =>
+  apiClient.put<ApiResult<LeaderboardTitleDto>>(`/admin/leaderboard-titles/${id}`, data)
+
+// 删除称号
+export const deleteLeaderboardTitle = (id: number) =>
+  apiClient.delete<ApiResult<null>>(`/admin/leaderboard-titles/${id}`)

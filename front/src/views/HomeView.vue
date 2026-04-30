@@ -22,6 +22,7 @@
         
         <div class="flex flex-col sm:flex-row justify-center gap-4">
           <router-link
+            v-if="authStore.isLoggedIn"
             to="/levels"
             class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-lg rounded-xl transition shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
           >
@@ -31,6 +32,14 @@
             </svg>
           </router-link>
           <router-link
+            v-else
+            to="/finger-typing"
+            class="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-lg rounded-xl transition shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
+          >
+            <span>⌨️</span>
+            <span>免费体验指法训练</span>
+          </router-link>
+          <router-link
             to="/leaderboard"
             class="px-8 py-4 bg-white hover:bg-gray-50 text-gray-700 font-bold text-lg rounded-xl border-2 border-gray-200 hover:border-purple-300 transition shadow-md hover:shadow-lg transform hover:scale-105 flex items-center justify-center gap-2"
           >
@@ -38,11 +47,20 @@
             <span>查看排行榜</span>
           </router-link>
           <router-link
+            v-if="authStore.isLoggedIn"
             to="/challenge"
             class="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold text-lg rounded-xl transition shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
           >
             <span>⚡</span>
             <span>天梯挑战</span>
+          </router-link>
+          <router-link
+            v-else
+            to="/login"
+            class="px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold text-lg rounded-xl transition shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2"
+          >
+            <span>🚀</span>
+            <span>登录开始挑战</span>
           </router-link>
         </div>
       </div>
@@ -66,71 +84,102 @@
         </div>
       </div>
 
-      <!-- 用户统计卡片 -->
-      <div v-if="loading" class="text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-        <p class="mt-4 text-gray-500">加载中...</p>
-      </div>
-      <div v-else class="mb-12">
-        <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">📊 我的学习数据</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-8 text-white hover:shadow-xl transition transform hover:scale-105">
-            <div class="flex items-center justify-between mb-4">
-              <div class="text-4xl">⭐</div>
-              <div class="text-5xl font-bold">{{ stats?.totalScore || 0 }}</div>
+      <!-- 用户统计卡片（仅登录用户显示） -->
+      <div v-if="authStore.isLoggedIn">
+        <div v-if="loading" class="text-center py-12">
+          <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+          <p class="mt-4 text-gray-500">加载中...</p>
+        </div>
+        <div v-else class="mb-12">
+          <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">📊 我的学习数据</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-8 text-white hover:shadow-xl transition transform hover:scale-105">
+              <div class="flex items-center justify-between mb-4">
+                <div class="text-4xl">⭐</div>
+                <div class="text-5xl font-bold">{{ stats?.totalScore || 0 }}</div>
+              </div>
+              <div class="text-lg font-medium opacity-90">总积分</div>
             </div>
-            <div class="text-lg font-medium opacity-90">总积分</div>
+            <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-8 text-white hover:shadow-xl transition transform hover:scale-105">
+              <div class="flex items-center justify-between mb-4">
+                <div class="text-4xl">🔥</div>
+                <div class="text-5xl font-bold">{{ stats?.streak || 0 }}</div>
+              </div>
+              <div class="text-lg font-medium opacity-90">连续打卡天数</div>
+            </div>
+            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-8 text-white hover:shadow-xl transition transform hover:scale-105">
+              <div class="flex items-center justify-between mb-4">
+                <div class="text-4xl">✅</div>
+                <div class="text-5xl font-bold">{{ stats?.totalCompletedLevels || 0 }}</div>
+              </div>
+              <div class="text-lg font-medium opacity-90">完成关卡数</div>
+            </div>
           </div>
-          <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-8 text-white hover:shadow-xl transition transform hover:scale-105">
-            <div class="flex items-center justify-between mb-4">
-              <div class="text-4xl">🔥</div>
-              <div class="text-5xl font-bold">{{ stats?.streak || 0 }}</div>
+        </div>
+
+        <!-- 打卡日历 -->
+        <div v-if="!loading" class="mb-12">
+          <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">📅 打卡日历</h2>
+          <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+            <div class="grid grid-cols-7 gap-3 max-w-3xl mx-auto mb-4">
+              <div v-for="day in ['日', '一', '二', '三', '四', '五', '六']" :key="day" class="text-center text-sm font-medium text-gray-500 py-2">
+                {{ day }}
+              </div>
             </div>
-            <div class="text-lg font-medium opacity-90">连续打卡天数</div>
-          </div>
-          <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-8 text-white hover:shadow-xl transition transform hover:scale-105">
-            <div class="flex items-center justify-between mb-4">
-              <div class="text-4xl">✅</div>
-              <div class="text-5xl font-bold">{{ stats?.totalCompletedLevels || 0 }}</div>
+            <div class="grid grid-cols-7 gap-3 max-w-3xl mx-auto">
+              <div
+                v-for="day in calendarDays"
+                :key="day.date"
+                :class="[
+                  'aspect-square rounded-xl flex items-center justify-center text-sm font-medium transition transform hover:scale-110',
+                  day.isCheckedIn
+                    ? 'bg-gradient-to-br from-green-400 to-green-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                ]"
+                :title="day.date + (day.isCheckedIn ? ' ✓ 已打卡' : '')"
+              >
+                {{ day.dayOfMonth }}
+              </div>
             </div>
-            <div class="text-lg font-medium opacity-90">完成关卡数</div>
+            <div class="mt-6 flex justify-center items-center gap-6 text-sm">
+              <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-gradient-to-br from-green-400 to-green-600"></div>
+                <span class="text-gray-600">已打卡</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-gray-100"></div>
+                <span class="text-gray-600">未打卡</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- 打卡日历 -->
-      <div v-if="!loading" class="mb-12">
-        <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">📅 打卡日历</h2>
-        <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-          <div class="grid grid-cols-7 gap-3 max-w-3xl mx-auto mb-4">
-            <div v-for="day in ['日', '一', '二', '三', '四', '五', '六']" :key="day" class="text-center text-sm font-medium text-gray-500 py-2">
-              {{ day }}
-            </div>
-          </div>
-          <div class="grid grid-cols-7 gap-3 max-w-3xl mx-auto">
-            <div
-              v-for="day in calendarDays"
-              :key="day.date"
-              :class="[
-                'aspect-square rounded-xl flex items-center justify-center text-sm font-medium transition transform hover:scale-110',
-                day.isCheckedIn
-                  ? 'bg-gradient-to-br from-green-400 to-green-600 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
-              ]"
-              :title="day.date + (day.isCheckedIn ? ' ✓ 已打卡' : '')"
+      <!-- 未登录用户的引导区域 -->
+      <div v-else class="mb-12">
+        <h2 class="text-3xl font-bold text-center text-gray-900 mb-8">🎯 为什么选择我们？</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+            <div class="text-5xl mb-4">🆓</div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3">免费体验</h3>
+            <p class="text-gray-600 mb-4">无需注册即可体验指法训练，感受我们的教学质量</p>
+            <router-link
+              to="/finger-typing"
+              class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
             >
-              {{ day.dayOfMonth }}
-            </div>
+              立即体验 →
+            </router-link>
           </div>
-          <div class="mt-6 flex justify-center items-center gap-6 text-sm">
-            <div class="flex items-center gap-2">
-              <div class="w-4 h-4 rounded bg-gradient-to-br from-green-400 to-green-600"></div>
-              <span class="text-gray-600">已打卡</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <div class="w-4 h-4 rounded bg-gray-100"></div>
-              <span class="text-gray-600">未打卡</span>
-            </div>
+          <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+            <div class="text-5xl mb-4">📈</div>
+            <h3 class="text-xl font-bold text-gray-900 mb-3">进步可见</h3>
+            <p class="text-gray-600 mb-4">注册后解锁完整功能，追踪学习进度，参与排行榜竞争</p>
+            <router-link
+              to="/register"
+              class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+            >
+              免费注册 →
+            </router-link>
           </div>
         </div>
       </div>
@@ -149,11 +198,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 import { getUserStats } from '@/api/stats'
 import { getCheckinCalendar } from '@/api/checkin'
 import type { UserStatsResponse } from '@/api/stats'
 import type { CheckinCalendarResponse } from '@/api/checkin'
 
+const authStore = useAuthStore()
 const loading = ref(true)
 const stats = ref<UserStatsResponse | null>(null)
 const calendar = ref<CheckinCalendarResponse | null>(null)
@@ -190,12 +241,20 @@ const calendarDays = computed<CalendarDay[]>(() => {
 const loadData = async () => {
   try {
     loading.value = true
-    const [statsRes, calendarRes] = await Promise.all([
-      getUserStats(),
-      getCheckinCalendar()
-    ])
-    stats.value = statsRes.data
-    calendar.value = calendarRes.data
+    
+    // 只有在登录时才加载用户数据
+    if (authStore.isLoggedIn) {
+      const [statsRes, calendarRes] = await Promise.all([
+        getUserStats(),
+        getCheckinCalendar()
+      ])
+      stats.value = statsRes.data
+      calendar.value = calendarRes.data
+    } else {
+      // 未登录时设置为null
+      stats.value = null
+      calendar.value = null
+    }
   } catch (error) {
     console.error('加载数据失败:', error)
   } finally {

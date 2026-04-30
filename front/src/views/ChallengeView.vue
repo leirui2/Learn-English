@@ -348,12 +348,17 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { getRandomExercises, submitChallenge, getChallengeLeaderboard, getChallengeHistory } from '@/api/challenge'
 import type { ChallengeExercise, ChallengeLeaderboardEntry, ChallengeRecord } from '@/api/challenge'
 
 type Phase = 'setup' | 'playing' | 'result' | 'leaderboard'
 type ContentType = 'WORD' | 'SENTENCE'
 type TimeMode = 'TIMED' | 'INFINITE'
+
+const router = useRouter()
+const authStore = useAuthStore()
 
 const phase = ref<Phase>('setup')
 const inputRef = ref<HTMLInputElement | null>(null)
@@ -452,6 +457,13 @@ const formatCountdown = (s: number) => {
 }
 
 const startChallenge = async () => {
+  // 检查登录状态
+  if (!authStore.isLoggedIn) {
+    // 未登录，跳转到登录页面
+    router.push({ name: 'Login', query: { redirect: '/challenge' } })
+    return
+  }
+
   // 显示语音选择弹窗
   showSpeakDialog.value = true
   speakDialogCountdown.value = 5

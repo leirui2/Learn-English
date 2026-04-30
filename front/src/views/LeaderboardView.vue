@@ -60,7 +60,16 @@
         <div class="flex items-center gap-4">
           <div class="w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">{{ currentUserRank.rank }}</div>
           <div>
-            <div class="font-bold text-lg text-gray-900">{{ currentUserRank.username }} <span class="text-sm text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">（我）</span></div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-bold text-lg text-gray-900">{{ currentUserRank.username }}</span>
+              <span class="text-sm text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">（我）</span>
+            </div>
+            <!-- 当前用户称号显示 -->
+            <div class="flex items-center gap-1 mb-1">
+              <span class="text-sm px-2 py-1 rounded-full font-medium" :class="getTitleStyle(currentUserRank.rank)">
+                {{ getTitleName(currentUserRank.rank) }} {{ getTitleIcon(currentUserRank.rank) }}
+              </span>
+            </div>
             <div class="text-sm text-gray-600">我的排名</div>
           </div>
         </div>
@@ -79,7 +88,7 @@
         <table v-else class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-16">排名</th>
+              <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-24">排名</th>
               <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">用户名</th>
               <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">{{ selectedType === 'score' ? '积分' : '连续打卡' }}</th>
             </tr>
@@ -87,8 +96,22 @@
           <tbody class="divide-y divide-gray-200">
             <tr v-for="entry in entries" :key="entry.userId" :class="['transition', entry.isCurrentUser ? 'bg-blue-50 font-semibold' : 'hover:bg-gray-50']">
               <td class="px-4 py-3 whitespace-nowrap">
-                <div class="flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold" :class="rankStyle(entry.rank)">
-                  {{ entry.rank <= 3 ? ['🥇','🥈','🥉'][entry.rank - 1] : entry.rank }}
+                <div class="flex flex-col items-center">
+                  <!-- 排名数字/奖牌 -->
+                  <div class="flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold mb-1" :class="rankStyle(entry.rank)">
+                    {{ entry.rank <= 3 ? ['🥇','🥈','🥉'][entry.rank - 1] : entry.rank }}
+                  </div>
+                  <!-- 段位称号显示 -->
+                  <div class="flex items-center gap-1 text-xs font-medium whitespace-nowrap">
+                    <!-- 前3名显示完整称号+图标 -->
+                    <span v-if="entry.rank <= 3" class="px-2 py-1 rounded-full" :class="getTitleStyle(entry.rank)">
+                      {{ getTitleName(entry.rank) }} {{ getTitleIcon(entry.rank) }}
+                    </span>
+                    <!-- 其他用户只显示图标 -->
+                    <span v-else class="text-lg">
+                      {{ getTitleIcon(entry.rank) }}
+                    </span>
+                  </div>
                 </div>
               </td>
               <td class="px-4 py-3 whitespace-nowrap">
@@ -96,8 +119,12 @@
                   <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
                     {{ entry.username.charAt(0).toUpperCase() }}
                   </div>
-                  <span class="text-gray-900 group-hover:text-blue-600 transition">{{ entry.username }}</span>
-                  <span v-if="entry.isCurrentUser" class="text-xs text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">我</span>
+                  <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                      <span class="text-gray-900 group-hover:text-blue-600 transition">{{ entry.username }}</span>
+                      <span v-if="entry.isCurrentUser" class="text-xs text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">我</span>
+                    </div>
+                  </div>
                 </div>
               </td>
               <td class="px-4 py-3 whitespace-nowrap text-right">
@@ -149,7 +176,11 @@
           <tbody class="divide-y divide-gray-200">
             <tr v-for="entry in challengeEntries" :key="entry.userId"
               :class="['transition', entry.isCurrentUser ? 'bg-purple-50 font-semibold' : 'hover:bg-gray-50']">
-              <td class="px-4 py-3 text-lg">{{ entry.rank <= 3 ? ['🥇','🥈','🥉'][entry.rank-1] : entry.rank }}</td>
+              <td class="px-4 py-3">
+                <div class="flex items-center justify-center text-lg font-bold">
+                  {{ entry.rank <= 3 ? ['🥇','🥈','🥉'][entry.rank-1] : entry.rank }}
+                </div>
+              </td>
               <td class="px-4 py-3 text-sm">
                 {{ entry.username }}
                 <span v-if="entry.isCurrentUser" class="ml-1 text-xs text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded">我</span>
@@ -171,11 +202,17 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { getLeaderboard, type LeaderboardEntryDto } from '@/api/leaderboard'
 import { getLevels } from '@/api/level'
 import { getChallengeLeaderboard, type ChallengeLeaderboardEntry } from '@/api/challenge'
 
 const router = useRouter()
+const authStore = useAuthStore()
+
+// 错误状态
+const hasError = ref(false)
+const errorMessage = ref('')
 
 // 主 Tab
 const mainTab = ref<'normal' | 'challenge'>('normal')
@@ -229,8 +266,43 @@ const goToUserProfile = (entry: LeaderboardEntryDto) => {
   router.push(entry.isCurrentUser ? '/profile' : `/profile/${entry.username}`)
 }
 
+// 称号样式函数
+const getTitleStyle = (rank: number) => {
+  if (rank === 1) return 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-md'
+  if (rank <= 3) return 'bg-gradient-to-r from-gray-400 to-gray-600 text-white shadow-md'
+  if (rank <= 10) return 'bg-gradient-to-r from-blue-400 to-blue-600 text-white shadow-sm'
+  if (rank <= 30) return 'bg-gradient-to-r from-green-400 to-green-600 text-white shadow-sm'
+  if (rank <= 50) return 'bg-gradient-to-r from-purple-400 to-purple-600 text-white shadow-sm'
+  if (rank <= 100) return 'bg-gradient-to-r from-orange-400 to-orange-600 text-white shadow-sm'
+  return 'bg-gray-200 text-gray-700'
+}
+
+// 称号图标函数
+const getTitleIcon = (rank: number) => {
+  if (rank === 1) return '👑'
+  if (rank <= 3) return '💎'
+  if (rank <= 10) return '🏆'
+  if (rank <= 30) return '🥇'
+  if (rank <= 50) return '🥈'
+  if (rank <= 100) return '🥉'
+  return '🔰'
+}
+
+// 根据排名获取称号名称
+const getTitleName = (rank: number) => {
+  if (rank === 1) return '最强王者'
+  if (rank === 2) return '超凡大师'
+  if (rank === 3) return '钻石宗师'
+  if (rank <= 10) return '黄金高手'
+  if (rank <= 30) return '白银选手'
+  if (rank <= 50) return '青铜新星'
+  if (rank <= 100) return '初级学员'
+  return '新手上路'
+}
+
 const loadLeaderboard = async () => {
   loading.value = true
+  hasError.value = false
   try {
     const params: { type: 'score' | 'streak'; period: 'week' | 'all'; category?: number } = {
       type: selectedType.value,
@@ -242,14 +314,25 @@ const loadLeaderboard = async () => {
     currentUserRank.value = response.data.currentUserRank || null
   } catch (error: any) {
     console.error('加载排行榜失败:', error)
-    // 401/403 错误会由 axios 拦截器自动处理，这里只记录日志
+    
+    // 如果是403错误且用户未登录，显示友好提示
+    if (error.response?.status === 403 && !authStore.isLoggedIn) {
+      hasError.value = true
+      errorMessage.value = '排行榜功能需要登录后查看'
+      entries.value = []
+      currentUserRank.value = null
+    } else {
+      // 其他错误保持原有处理方式
+      hasError.value = true
+      errorMessage.value = '加载排行榜失败，请稍后重试'
+    }
   } finally {
     loading.value = false
   }
 }
 
 const loadChallengeLeaderboard = async () => {
-  clbLoading.value = true
+  clbLoading.value = true 
   try {
     const res = await getChallengeLeaderboard({
       type: clbType.value,
@@ -259,7 +342,11 @@ const loadChallengeLeaderboard = async () => {
     challengeEntries.value = (res.data as any).data || res.data
   } catch (error: any) {
     console.error(error)
-    // 401/403 错误会由 axios 拦截器自动处理，这里只记录日志
+    
+    // 如果是403错误且用户未登录，显示友好提示
+    if (error.response?.status === 403 && !authStore.isLoggedIn) {
+      challengeEntries.value = []
+    }
   } finally {
     clbLoading.value = false
   }
@@ -272,7 +359,11 @@ const loadCategories = async () => {
     categories.value = data.map((item: any) => ({ id: item.id, name: item.name }))
   } catch (error: any) {
     console.error('加载分类失败:', error)
-    // 401/403 错误会由 axios 拦截器自动处理，这里只记录日志
+    
+    // 如果是403错误且用户未登录，设置空数组
+    if (error.response?.status === 403 && !authStore.isLoggedIn) {
+      categories.value = []
+    }
   }
 }
 

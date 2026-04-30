@@ -1,6 +1,7 @@
 package com.englishtyping.service.impl;
 
 import com.englishtyping.annotation.AdminOperation;
+import com.englishtyping.dto.LeaderboardTitleDto;
 import com.englishtyping.dto.admin.*;
 import com.englishtyping.entity.*;
 import com.englishtyping.repository.*;
@@ -35,6 +36,7 @@ public class AdminServiceImpl implements AdminService {
     private final LevelRepository levelRepository;
     private final ExerciseRepository exerciseRepository;
     private final AdminOperationLogRepository adminOperationLogRepository;
+    private final LeaderboardTitleRepository leaderboardTitleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender;
 
@@ -174,14 +176,14 @@ public class AdminServiceImpl implements AdminService {
     // ===== 分类管理 =====
 
     @Override
-    public List<CategoryDto> getAllCategories() {
+    public List<com.englishtyping.dto.admin.CategoryDto> getAllCategories() {
         return categoryRepository.findAll().stream()
                 .map(this::convertToCategoryDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public CategoryDto getCategoryDetail(Integer id) {
+    public com.englishtyping.dto.admin.CategoryDto getCategoryDetail(Integer id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "分类不存在"));
         return convertToCategoryDto(category);
@@ -190,7 +192,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     @AdminOperation(type = "CREATE", targetType = "CATEGORY", description = "创建分类")
-    public CategoryDto createCategory(CreateCategoryRequest request) {
+    public com.englishtyping.dto.admin.CategoryDto createCategory(CreateCategoryRequest request) {
         Category category = Category.builder()
                 .name(request.getName())
                 .description(request.getDescription())
@@ -204,7 +206,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     @AdminOperation(type = "UPDATE", targetType = "CATEGORY", description = "更新分类")
-    public CategoryDto updateCategory(Integer id, UpdateCategoryRequest request) {
+    public com.englishtyping.dto.admin.CategoryDto updateCategory(Integer id, UpdateCategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "分类不存在"));
         
@@ -239,10 +241,10 @@ public class AdminServiceImpl implements AdminService {
         categoryRepository.delete(category);
     }
 
-    private CategoryDto convertToCategoryDto(Category category) {
+    private com.englishtyping.dto.admin.CategoryDto convertToCategoryDto(Category category) {
         long levelCount = levelRepository.findByCategoryIdOrderByLevelOrderAsc(category.getId()).size();
         
-        return CategoryDto.builder()
+        return com.englishtyping.dto.admin.CategoryDto.builder()
                 .id(category.getId())
                 .name(category.getName())
                 .description(category.getDescription())
@@ -506,4 +508,131 @@ public class AdminServiceImpl implements AdminService {
                 .createdAt(log.getCreatedAt())
                 .build();
     }
+
+    // ===== 称号管理 =====
+
+    @Override
+    public List<LeaderboardTitleDto> getAllLeaderboardTitles() {
+        return leaderboardTitleRepository.findAllByOrderBySortOrderAsc().stream()
+                .map(this::convertToTitleDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public LeaderboardTitleDto getLeaderboardTitleDetail(Long id) {
+        LeaderboardTitle title = leaderboardTitleRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "称号不存在"));
+        return convertToTitleDto(title);
+    }
+
+    @Override
+    @AdminOperation(type = "CREATE_TITLE", targetType = "LeaderboardTitle")
+    public LeaderboardTitleDto createLeaderboardTitle(CreateLeaderboardTitleRequest request) {
+        // 验证排名区间的合理性
+        if (request.getMinRank() > request.getMaxRank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "最小排名不能大于最大排名");
+        }
+
+        // 检查排名区间是否与现有称号冲突
+        List<LeaderboardTitle> existingTitles = leaderboardTitleRepository.findAllByOrderBySortOrderAsc();
+        for (LeaderboardTitle existing : existingTitles) {
+            if (isRankRangeOverlap(request.getMinRank(), request.getMaxRank(), 
+                                 existing.getMinRank(), existing.getMaxRank())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    String.format("排名区间与现有称号 '%s' 冲突", existing.getName()));
+            }
+        }
+
+        LeaderboardTitle title = LeaderboardTitle.builder()
+                .name(request.getName())
+                .minRank(request.getMinRank())
+                .maxRank(request.getMaxRank())
+                .icon(request.getIcon())
+                .color(request.getColor())
+                .sortOrder(request.getSortOrder())
+                .build();
+
+        title = leaderboardTitleRepository.save(title);
+        return convertToTitleDto(title);
+    }
+
+    @Override
+    @AdminOperation(type = "UPDATE_TITLE", targetType = "LeaderboardTitle")
+    public LeaderboardTitleDto updateLeaderboardTitle(Long id, UpdateLeaderboardTitleRequest request) {
+        LeaderboardTitle title = leaderboardTitleRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "称号不存在"));
+
+        // 如果更新了排名区间，需要验证合理性
+        Integer newMinRank = request.getMinRank() != null ? request.getMinRank() : title.getMinRank();
+        Integer newMaxRank = request.getMaxRank() != null ? request.getMaxRank() : title.getMaxRank();
+        
+        if (newMinRank > newMaxRank) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "最小排名不能大于最大排名");
+        }
+
+        // 检查更新后的排名区间是否与其他称号冲突
+        List<LeaderboardTitle> existingTitles = leaderboardTitleRepository.findAllByOrderBySortOrderAsc();
+        for (LeaderboardTitle existing : existingTitles) {
+            if (!existing.getId().equals(id) && 
+                isRankRangeOverlap(newMinRank, newMaxRank, existing.getMinRank(), existing.getMaxRank())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, 
+                    String.format("排名区间与现有称号 '%s' 冲突", existing.getName()));
+            }
+        }
+
+        if (request.getName() != null) {
+            title.setName(request.getName());
+        }
+        if (request.getMinRank() != null) {
+            title.setMinRank(request.getMinRank());
+        }
+        if (request.getMaxRank() != null) {
+            title.setMaxRank(request.getMaxRank());
+        }
+        if (request.getIcon() != null) {
+            title.setIcon(request.getIcon());
+        }
+        if (request.getColor() != null) {
+            title.setColor(request.getColor());
+        }
+        if (request.getSortOrder() != null) {
+            title.setSortOrder(request.getSortOrder());
+        }
+
+        title = leaderboardTitleRepository.save(title);
+        return convertToTitleDto(title);
+    }
+
+    @Override
+    @AdminOperation(type = "DELETE_TITLE", targetType = "LeaderboardTitle")
+    public void deleteLeaderboardTitle(Long id) {
+        if (!leaderboardTitleRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "称号不存在");
+        }
+        leaderboardTitleRepository.deleteById(id);
+    }
+
+    /**
+     * 检查两个排名区间是否重叠
+     */
+    private boolean isRankRangeOverlap(Integer min1, Integer max1, Integer min2, Integer max2) {
+        return !(max1 < min2 || max2 < min1);
+    }
+
+    /**
+     * 将 LeaderboardTitle 实体转换为 DTO
+     */
+    private LeaderboardTitleDto convertToTitleDto(LeaderboardTitle title) {
+        return LeaderboardTitleDto.builder()
+                .id(title.getId())
+                .name(title.getName())
+                .minRank(title.getMinRank())
+                .maxRank(title.getMaxRank())
+                .icon(title.getIcon())
+                .color(title.getColor())
+                .sortOrder(title.getSortOrder())
+                .build();
+    }
+
+
 }

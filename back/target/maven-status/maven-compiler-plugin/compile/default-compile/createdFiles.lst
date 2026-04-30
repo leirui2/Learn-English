@@ -1,4 +1,3 @@
-com\englishtyping\service\impl\LeaderboardServiceImpl.class
 com\englishtyping\controller\LevelController.class
 com\englishtyping\repository\DailyCheckinRepository.class
 com\englishtyping\service\impl\LevelServiceImpl.class
@@ -42,7 +41,6 @@ com\englishtyping\dto\admin\CreateExerciseRequest.class
 com\englishtyping\dto\admin\UpdateUserRoleRequest.class
 com\englishtyping\entity\WordErrorStat.class
 com\englishtyping\entity\PasswordResetToken.class
-com\englishtyping\controller\LeaderboardController.class
 com\englishtyping\repository\UserLevelProgressRepository.class
 com\englishtyping\dto\CheckinStreakResponse.class
 com\englishtyping\entity\User$UserBuilder.class
@@ -63,7 +61,6 @@ com\englishtyping\service\LevelService.class
 com\englishtyping\dto\admin\BatchCreateExerciseRequest.class
 com\englishtyping\config\RedisConfig.class
 com\englishtyping\dto\admin\CreateCategoryRequest.class
-com\englishtyping\service\LeaderboardService.class
 com\englishtyping\service\AdminService.class
 com\englishtyping\dto\admin\ExerciseDto.class
 com\englishtyping\dto\ChallengeExerciseDto.class

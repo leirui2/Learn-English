@@ -178,7 +178,8 @@ public class ChallengeController {
             @RequestParam(required = false) Integer timeLimit,
             Authentication authentication) {
 
-        String currentUserId = (String) authentication.getPrincipal();
+        // 支持游客访问：如果未认证，currentUserId为null
+        String currentUserId = authentication != null ? (String) authentication.getPrincipal() : null;
         List<ChallengeRecord> records;
 
         if ("TIMED".equalsIgnoreCase(mode)) {
@@ -223,7 +224,7 @@ public class ChallengeController {
                     .timeMs(r.getTimeMs())
                     .wpm(r.getWpm())
                     .createdAt(r.getCreatedAt())
-                    .isCurrentUser(r.getUserId().equals(currentUserId))
+                    .isCurrentUser(currentUserId != null && r.getUserId().equals(currentUserId))
                     .build());
         }
 

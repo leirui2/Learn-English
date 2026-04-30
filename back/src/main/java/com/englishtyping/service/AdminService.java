@@ -1,5 +1,6 @@
 package com.englishtyping.service;
 
+import com.englishtyping.dto.LeaderboardTitleDto;
 import com.englishtyping.dto.admin.*;
 import com.englishtyping.entity.UserRole;
 import com.englishtyping.entity.UserStatus;
@@ -10,6 +11,7 @@ import java.util.List;
 
 /**
  * 管理员服务接口
+ * @author lei
  */
 public interface AdminService {
 
@@ -80,7 +82,7 @@ public interface AdminService {
      *
      * @return 分类列表
      */
-    List<CategoryDto> getAllCategories();
+    List<com.englishtyping.dto.admin.CategoryDto> getAllCategories();
 
     /**
      * 获取分类详情
@@ -88,7 +90,7 @@ public interface AdminService {
      * @param id 分类 ID
      * @return 分类详情
      */
-    CategoryDto getCategoryDetail(Integer id);
+    com.englishtyping.dto.admin.CategoryDto getCategoryDetail(Integer id);
 
     /**
      * 创建新分类
@@ -96,7 +98,7 @@ public interface AdminService {
      * @param request 创建请求
      * @return 创建的分类
      */
-    CategoryDto createCategory(CreateCategoryRequest request);
+    com.englishtyping.dto.admin.CategoryDto createCategory(CreateCategoryRequest request);
 
     /**
      * 更新分类信息
@@ -105,7 +107,7 @@ public interface AdminService {
      * @param request 更新请求
      * @return 更新后的分类
      */
-    CategoryDto updateCategory(Integer id, UpdateCategoryRequest request);
+    com.englishtyping.dto.admin.CategoryDto updateCategory(Integer id, UpdateCategoryRequest request);
 
     /**
      * 删除分类（检查是否有关卡）
@@ -205,6 +207,48 @@ public interface AdminService {
      * @param id 练习内容 ID
      */
     void deleteExercise(Integer id);
+
+    // ===== 称号管理 =====
+    
+    /**
+     * 获取所有称号
+     *
+     * @return 称号列表
+     */
+    List<LeaderboardTitleDto> getAllLeaderboardTitles();
+
+    /**
+     * 获取称号详情
+     *
+     * @param id 称号 ID
+     * @return 称号详情
+     */
+    LeaderboardTitleDto getLeaderboardTitleDetail(Long id);
+
+    /**
+     * 创建称号
+     *
+     * @param request 创建请求
+     * @return 创建的称号
+     */
+    LeaderboardTitleDto createLeaderboardTitle(CreateLeaderboardTitleRequest request);
+
+    /**
+     * 更新称号
+     *
+     * @param id 称号 ID
+     * @param request 更新请求
+     * @return 更新后的称号
+     */
+    LeaderboardTitleDto updateLeaderboardTitle(Long id, UpdateLeaderboardTitleRequest request);
+
+    /**
+     * 删除称号
+     *
+     * @param id 称号 ID
+     */
+    void deleteLeaderboardTitle(Long id);
+
 
     // ===== 操作日志查询 =====
     

@@ -30,8 +30,8 @@ public class LevelController {
      */
     @GetMapping
     public ResponseEntity<ApiResult<List<CategoryDto>>> getLevelList(Authentication authentication) {
-        // 从认证信息中获取用户ID
-        String userId = authentication.getName();
+        // 支持游客访问：如果未认证，userId为null
+        String userId = authentication != null ? authentication.getName() : null;
         List<CategoryDto> levelList = levelService.getLevelList(userId);
         return ResponseEntity.ok(ApiResult.success(levelList));
     }

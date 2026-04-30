@@ -2,7 +2,10 @@ package com.englishtyping.service.impl;
 
 import com.englishtyping.dto.LeaderboardEntryDto;
 import com.englishtyping.dto.LeaderboardResponse;
+import com.englishtyping.dto.LeaderboardTitleDto;
+import com.englishtyping.entity.LeaderboardTitle;
 import com.englishtyping.entity.User;
+import com.englishtyping.repository.LeaderboardTitleRepository;
 import com.englishtyping.repository.TypingSessionRepository;
 import com.englishtyping.repository.UserRepository;
 import com.englishtyping.service.LeaderboardService;
@@ -28,6 +31,7 @@ public class LeaderboardServiceImpl implements LeaderboardService {
 
     private final UserRepository userRepository;
     private final TypingSessionRepository typingSessionRepository;
+    private final LeaderboardTitleRepository leaderboardTitleRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
 
@@ -216,6 +220,11 @@ public class LeaderboardServiceImpl implements LeaderboardService {
      */
     private LeaderboardEntryDto findCurrentUserRankInScoreLeaderboard(String period, Integer categoryId, 
                                                                        String currentUserId, List<LeaderboardEntryDto> topEntries) {
+        // 如果没有当前用户ID（游客访问），返回null
+        if (currentUserId == null) {
+            return null;
+        }
+        
         // 检查用户是否在前 100 名中
         Optional<LeaderboardEntryDto> inTop100 = topEntries.stream()
                 .filter(entry -> entry.getUserId().equals(currentUserId))
@@ -262,6 +271,11 @@ public class LeaderboardServiceImpl implements LeaderboardService {
      */
     private LeaderboardEntryDto findCurrentUserRankInStreakLeaderboard(String period, Integer categoryId, 
                                                                         String currentUserId, List<LeaderboardEntryDto> topEntries) {
+        // 如果没有当前用户ID（游客访问），返回null
+        if (currentUserId == null) {
+            return null;
+        }
+        
         // 检查用户是否在前 100 名中
         Optional<LeaderboardEntryDto> inTop100 = topEntries.stream()
                 .filter(entry -> entry.getUserId().equals(currentUserId))
@@ -320,6 +334,11 @@ public class LeaderboardServiceImpl implements LeaderboardService {
      * 标记当前用户
      */
     private void markCurrentUser(LeaderboardResponse response, String currentUserId) {
+        // 如果没有当前用户ID（游客访问），跳过标记
+        if (currentUserId == null) {
+            return;
+        }
+        
         // 在前 100 名中标记当前用户
         response.getEntries().forEach(entry -> {
             if (entry.getUserId().equals(currentUserId)) {
@@ -331,5 +350,46 @@ public class LeaderboardServiceImpl implements LeaderboardService {
         if (response.getCurrentUserRank() != null) {
             response.getCurrentUserRank().setIsCurrentUser(true);
         }
+    }
+
+    // ===== 称号管理 =====
+
+    @Override
+    public List<LeaderboardTitleDto> getAllTitles() {
+        return leaderboardTitleRepository.findAllByOrderBySortOrderAsc().stream()
+                .map(this::convertToTitleDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public LeaderboardTitleDto getTitleByRank(Integer rank) {
+        if (rank == null || rank <= 0) {
+            return null;
+        }
+
+        List<LeaderboardTitle> titles = leaderboardTitleRepository.findAllByOrderBySortOrderAsc();
+        
+        for (LeaderboardTitle title : titles) {
+            if (rank >= title.getMinRank() && rank <= title.getMaxRank()) {
+                return convertToTitleDto(title);
+            }
+        }
+        
+        return null; // 没有匹配的称号
+    }
+
+    /**
+     * 将 LeaderboardTitle 实体转换为 DTO
+     */
+    private LeaderboardTitleDto convertToTitleDto(LeaderboardTitle title) {
+        return LeaderboardTitleDto.builder()
+                .id(title.getId())
+                .name(title.getName())
+                .minRank(title.getMinRank())
+                .maxRank(title.getMaxRank())
+                .icon(title.getIcon())
+                .color(title.getColor())
+                .sortOrder(title.getSortOrder())
+                .build();
     }
 }

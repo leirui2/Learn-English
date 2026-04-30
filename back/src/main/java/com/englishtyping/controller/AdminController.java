@@ -3,6 +3,7 @@ package com.englishtyping.controller;
 import com.englishtyping.dto.AdminPointsRecordPageResponse;
 import com.englishtyping.dto.CreateGiftRequest;
 import com.englishtyping.dto.GiftDto;
+import com.englishtyping.dto.LeaderboardTitleDto;
 import com.englishtyping.dto.UpdateGiftRequest;
 import com.englishtyping.dto.admin.*;
 import com.englishtyping.entity.PointsType;
@@ -474,6 +475,65 @@ public class AdminController {
         String imageUrl = giftService.uploadGiftImage(id, file);
         return ResponseEntity.ok(ApiResult.success(imageUrl));
     }
+
+    // ===== 称号管理 =====
+    
+    /**
+     * 获取所有称号
+     * GET /admin/leaderboard-titles
+     */
+    @GetMapping("/leaderboard-titles")
+    public ResponseEntity<ApiResult<List<LeaderboardTitleDto>>> getAllTitles() {
+        List<LeaderboardTitleDto> titles = adminService.getAllLeaderboardTitles();
+        return ResponseEntity.ok(ApiResult.success(titles));
+    }
+
+    /**
+     * 获取称号详情
+     * GET /admin/leaderboard-titles/{id}
+     */
+    @GetMapping("/leaderboard-titles/{id}")
+    public ResponseEntity<ApiResult<LeaderboardTitleDto>> getTitleDetail(@PathVariable Long id) {
+        LeaderboardTitleDto title = adminService.getLeaderboardTitleDetail(id);
+        return ResponseEntity.ok(ApiResult.success(title));
+    }
+
+    /**
+     * 创建称号
+     * POST /admin/leaderboard-titles
+     */
+    @PostMapping("/leaderboard-titles")
+    public ResponseEntity<ApiResult<LeaderboardTitleDto>> createTitle(
+            @Valid @RequestBody CreateLeaderboardTitleRequest request
+    ) {
+        LeaderboardTitleDto title = adminService.createLeaderboardTitle(request);
+        return ResponseEntity.ok(ApiResult.success(title));
+    }
+
+    /**
+     * 更新称号
+     * PUT /admin/leaderboard-titles/{id}
+     */
+    @PutMapping("/leaderboard-titles/{id}")
+    public ResponseEntity<ApiResult<LeaderboardTitleDto>> updateTitle(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateLeaderboardTitleRequest request
+    ) {
+        LeaderboardTitleDto title = adminService.updateLeaderboardTitle(id, request);
+        return ResponseEntity.ok(ApiResult.success(title));
+    }
+
+    /**
+     * 删除称号
+     * DELETE /admin/leaderboard-titles/{id}
+     */
+    @DeleteMapping("/leaderboard-titles/{id}")
+    public ResponseEntity<ApiResult<Void>> deleteTitle(@PathVariable Long id) {
+        adminService.deleteLeaderboardTitle(id);
+        return ResponseEntity.ok(ApiResult.success(null));
+    }
+
+
 
     // ===== 内部统一响应包装类 =====
 

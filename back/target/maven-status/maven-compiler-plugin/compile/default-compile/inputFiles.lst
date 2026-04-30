@@ -14,6 +14,7 @@ C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\entity\C
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\admin\UpdateLevelRequest.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\exception\GlobalExceptionHandler.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\service\AuthService.java
+C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\admin\CreateLeaderboardTitleRequest.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\admin\CreateLevelRequest.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\repository\WordErrorStatRepository.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\entity\AdminOperationLog.java
@@ -53,6 +54,7 @@ C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\service\
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\repository\GiftRepository.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\SubmitChallengeRequest.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\controller\PointsRecordController.java
+C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\admin\UpdateLeaderboardTitleRequest.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\entity\WordErrorStat.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\controller\LevelController.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\CreateGiftRequest.java
@@ -80,6 +82,7 @@ C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\entity\P
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\auth\ForgotPasswordRequest.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\entity\PointsRecord.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\UserProfileDto.java
+C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\entity\LeaderboardTitle.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\admin\UserListDto.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\admin\CreateCategoryRequest.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\repository\ChallengeRecordRepository.java
@@ -94,7 +97,9 @@ C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\service\
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\repository\UserItemRepository.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\entity\UserLevelProgress.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\service\LevelService.java
+C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\LeaderboardTitleDto.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\entity\User.java
+C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\repository\LeaderboardTitleRepository.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\CompleteLevelRequest.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\service\AdminService.java
 C:\Users\lei\Desktop\Learn-English\back\src\main\java\com\englishtyping\dto\admin\ExerciseDto.java

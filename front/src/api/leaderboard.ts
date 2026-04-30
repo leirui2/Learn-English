@@ -7,6 +7,7 @@ export interface LeaderboardEntryDto {
   score: number
   streak: number
   isCurrentUser: boolean
+  title?: string  // 称号名称
 }
 
 export interface LeaderboardResponse {

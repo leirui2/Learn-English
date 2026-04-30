@@ -25,7 +25,7 @@ public class LeaderboardController {
      * @param type 排行榜类型（score/streak）
      * @param period 时间维度（week/all）
      * @param category 难度分类 ID（可选）
-     * @param authentication 认证信息
+     * @param authentication 认证信息（可选，游客访问时为null）
      * @return 排行榜响应
      */
     @GetMapping
@@ -35,7 +35,8 @@ public class LeaderboardController {
             @RequestParam(required = false) Integer category,
             Authentication authentication) {
         
-        String currentUserId = authentication.getName();
+        // 支持游客访问：如果未认证，currentUserId为null
+        String currentUserId = authentication != null ? authentication.getName() : null;
         LeaderboardResponse response = leaderboardService.getLeaderboard(type, period, category, currentUserId);
         return ResponseEntity.ok(response);
     }

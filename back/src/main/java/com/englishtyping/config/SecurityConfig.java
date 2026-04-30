@@ -47,6 +47,9 @@ public class SecurityConfig {
                 // 路径权限配置
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/leaderboard/**").permitAll()  // 允许游客访问排行榜
+                        .requestMatchers("/challenge/leaderboard").permitAll()  // 允许游客访问天梯排行榜
+                        .requestMatchers("/levels").permitAll()  // 允许游客访问关卡列表（仅用于获取分类信息）
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
